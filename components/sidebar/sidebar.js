@@ -4,9 +4,19 @@
         .then(response => response.text())
         .then(data => {
 
-            document
-                .getElementById("sidebar-container")
-                .innerHTML = data;
+            const container = document.getElementById("sidebar-container");
+
+            container.innerHTML = data;
+
+            const currentPage = document.body.dataset.page;
+
+            const activeLink = container.querySelector(
+                `[data-page="${currentPage}"]`
+            );
+
+            if (activeLink) {
+                activeLink.classList.add("active");
+            }
 
         });
 

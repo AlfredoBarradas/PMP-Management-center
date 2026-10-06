@@ -25,121 +25,11 @@ body {
 
 
 /* =========================================
-   SIDEBAR
-   ========================================= */
-
-.sidebar {
-    width: 240px;
-    background-color: #ffffff;
-    border-right: 1px solid #dfe3e6;
-
-    display: flex;
-    flex-direction: column;
-}
-
-
-.sidebar-header {
-    padding: 20px;
-    border-bottom: 1px solid #dfe3e6;
-}
-
-.sidebar-header h1 {
-    margin: 0;
-}
-
-.sidebar-header p {
-    margin: 5px 0 0;
-    font-size: 12px;
-    color: #6b7280;
-}
-
-
-.sidebar-menu {
-    display: flex;
-    flex-direction: column;
-    padding: 15px 10px;
-}
-
-
-.sidebar-menu a,
-.sidebar-footer a {
-    padding: 10px;
-    text-decoration: none;
-    color: #374151;
-}
-
-
-.sidebar-menu a:hover,
-.sidebar-footer a:hover {
-    background-color: #e8f7f7;
-}
-
-
-.sidebar-footer {
-    margin-top: auto;
-    padding: 10px;
-    border-top: 1px solid #dfe3e6;
-
-    display: flex;
-    flex-direction: column;
-}
-
-
-/* =========================================
    MAIN CONTENT
    ========================================= */
 
 .main-content {
     flex: 1;
-}
-
-
-/* =========================================
-   TOPBAR
-   ========================================= */
-
-.topbar {
-    height: 70px;
-    background-color: #ffffff;
-    border-bottom: 1px solid #dfe3e6;
-
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-
-    padding: 0 30px;
-}
-
-
-.page-title h2 {
-    margin: 0;
-}
-
-
-.user-menu {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-
-.user-menu button {
-    border: none;
-    background: none;
-    padding: 8px;
-    cursor: pointer;
-}
-
-
-.user-info {
-    display: flex;
-    flex-direction: column;
-}
-
-
-.user-info span {
-    font-size: 12px;
-    color: #6b7280;
 }
 
 
@@ -195,11 +85,12 @@ body {
 
 .dashboard-card h3 {
     margin-top: 0;
+    font-size: 24px;
 }
 
 
 .dashboard-card p {
-    font-size: 24px;
+    font-size: 14px;
     font-weight: bold;
     margin-bottom: 0;
 }

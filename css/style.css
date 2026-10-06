@@ -1,0 +1,235 @@
+/* =========================================
+   GENERAL
+   ========================================= */
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f4f6f7;
+    color: #263238;
+}
+
+
+/* =========================================
+   APPLICATION
+   ========================================= */
+
+.app {
+    display: flex;
+    min-height: 100vh;
+}
+
+
+/* =========================================
+   SIDEBAR
+   ========================================= */
+
+.sidebar {
+    width: 240px;
+    background-color: #ffffff;
+    border-right: 1px solid #dfe3e6;
+
+    display: flex;
+    flex-direction: column;
+}
+
+
+.sidebar-header {
+    padding: 20px;
+    border-bottom: 1px solid #dfe3e6;
+}
+
+.sidebar-header h1 {
+    margin: 0;
+}
+
+.sidebar-header p {
+    margin: 5px 0 0;
+    font-size: 12px;
+    color: #6b7280;
+}
+
+
+.sidebar-menu {
+    display: flex;
+    flex-direction: column;
+    padding: 15px 10px;
+}
+
+
+.sidebar-menu a,
+.sidebar-footer a {
+    padding: 10px;
+    text-decoration: none;
+    color: #374151;
+}
+
+
+.sidebar-menu a:hover,
+.sidebar-footer a:hover {
+    background-color: #e8f7f7;
+}
+
+
+.sidebar-footer {
+    margin-top: auto;
+    padding: 10px;
+    border-top: 1px solid #dfe3e6;
+
+    display: flex;
+    flex-direction: column;
+}
+
+
+/* =========================================
+   MAIN CONTENT
+   ========================================= */
+
+.main-content {
+    flex: 1;
+}
+
+
+/* =========================================
+   TOPBAR
+   ========================================= */
+
+.topbar {
+    height: 70px;
+    background-color: #ffffff;
+    border-bottom: 1px solid #dfe3e6;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 0 30px;
+}
+
+
+.page-title h2 {
+    margin: 0;
+}
+
+
+.user-menu {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+
+.user-menu button {
+    border: none;
+    background: none;
+    padding: 8px;
+    cursor: pointer;
+}
+
+
+.user-info {
+    display: flex;
+    flex-direction: column;
+}
+
+
+.user-info span {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+
+/* =========================================
+   CONTENT
+   ========================================= */
+
+.content {
+    padding: 30px;
+}
+
+
+.content > h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
+
+/* =========================================
+   DASHBOARD CARDS
+   ========================================= */
+
+.dashboard-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, 1fr);
+
+    gap: 15px;
+
+    margin-bottom: 40px;
+}
+
+
+.dashboard-card {
+    background-color: #ffffff;
+
+    border: 1px solid #dfe3e6;
+    border-radius: 8px;
+
+    padding: 20px;
+
+    text-align: left;
+
+    cursor: pointer;
+}
+
+
+.dashboard-card:hover {
+    border-color: #8bd8d8;
+}
+
+
+.dashboard-card h3 {
+    margin-top: 0;
+}
+
+
+.dashboard-card p {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 0;
+}
+
+
+/* =========================================
+   DOCUMENT STATUS
+   ========================================= */
+
+.document-status {
+    display: flex;
+    gap: 15px;
+}
+
+
+.document-status div {
+    flex: 1;
+
+    background-color: #ffffff;
+
+    border: 1px solid #dfe3e6;
+    border-radius: 8px;
+
+    padding: 20px;
+
+    display: flex;
+    justify-content: space-between;
+}
+
+
+.document-status strong {
+    font-size: 24px;
+}

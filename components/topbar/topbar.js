@@ -19,4 +19,31 @@
     link.href = "/components/topbar/topbar.css";
     document.head.appendChild(link);
 
+    async function initializeTopbarUser() {
+        const authData = await initializeSupabaseAuth();
+        if (!authData?.user) {
+            return;
+        }
+        const emailElement = document.getElementById("current-user-email");
+        const roleElement = document.getElementById("current-user-role");
+        if (emailElement) {
+            emailElement.textContent = authData.user.email;
+        }
+        if (roleElement) {
+            roleElement.textContent = authData.role;
+        }
+        const logoutButton = document.getElementById("logout-button");
+        if (logoutButton) {
+            logoutButton.addEventListener("click", async () => {
+                const { error } = await supabaseClient.auth.signOut();
+                if (error) {
+                    console.error("Logout error:", error);
+                    return;
+                }
+                window.location.href = "/auth/";
+            });
+        }
+    }
+    initializeTopbarUser();
+    
 })();

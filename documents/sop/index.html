@@ -424,9 +424,32 @@
         </main>
     </div>
 
+    <div id="sop-modal" class="sop-modal hidden">
+        <div class="sop-modal-overlay"></div>
+        <div class="sop-modal-content">
+            <div class="sop-modal-header">
+                <div>
+                    <h2>SOP Details</h2>
+                    <p>Document information</p>
+                </div>
+                <button type="button" class="sop-modal-close" id="sop-modal-close">&times;</button>
+            </div>
+            <div class="sop-modal-body">
+                <p>SOP information will appear here.</p>
+            </div>
+            <div class="sop-modal-footer">
+                <button type="button" class="secondary-button" id="sop-modal-close-footer">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/js/supabase.js"></script>
+    <script src="/js/auth.js"></script>
+
     <script src="/components/sidebar/sidebar.js"></script>
     <script src="/components/topbar/topbar.js"></script>
     <script src="/documents/sop/sop.js"></script>
-
+    
 </body>
 </html>

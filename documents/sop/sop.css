@@ -280,3 +280,128 @@
 .hidden {
     display: none !important;
 }
+
+
+.sop-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.sop-modal.hidden {
+    display: none;
+}
+.sop-modal-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+}
+.sop-modal-content {
+    position: relative;
+    z-index: 1;
+    width: min(800px, 90vw);
+    max-height: 85vh;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.sop-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 1px solid #ddd;
+}
+.sop-modal-header h2 {
+    margin: 0;
+}
+.sop-modal-header p {
+    margin: 4px 0 0;
+}
+.sop-modal-close {
+    border: none;
+    background: transparent;
+    font-size: 28px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 4px 8px;
+}
+.sop-modal-body {
+    padding: 24px;
+    overflow-y: auto;
+    flex: 1;
+}
+.sop-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    padding: 16px 24px;
+    border-top: 1px solid #ddd;
+}
+
+.sop-modal-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+.sop-modal-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.sop-modal-field span {
+    font-size: 13px;
+    font-weight: 600;
+    color: #666;
+}
+.sop-modal-field strong {
+    font-size: 15px;
+}
+.sop-modal-field-full {
+    grid-column: 1 / -1;
+}
+.sop-modal-field-full p {
+    margin: 0;
+    line-height: 1.5;
+}
+
+.sop-modal-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 8px;
+}
+
+.sop-revision-header {
+    margin-bottom: 20px;
+}
+.sop-revision-header h3 {
+    margin: 0;
+}
+.sop-revision-header p {
+    margin: 4px 0 0;
+}
+.sop-revision-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 20px;
+}
+.sop-revision-section label {
+    font-weight: 600;
+}
+.sop-revision-section textarea {
+    width: 100%;
+    box-sizing: border-box;
+    resize: vertical;
+}
+.sop-revision-section input[type="file"] {
+    width: 100%;
+}
+.sop-revision-section small {
+    color: #666;
+}

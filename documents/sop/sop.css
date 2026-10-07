@@ -1,0 +1,264 @@
+.sop-section {
+    width: 100%;
+}
+
+.sop-section h2 {
+    margin: 0 0 6px;
+    font-size: 24px;
+    color: #263238;
+}
+
+.section-header {
+    margin-bottom: 20px;
+}
+
+.control-actions {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.control-actions button,
+.workflow-summary button,
+.table-actions button {
+    font-family: inherit;
+}
+
+.document-status {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.status-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 20px;
+    background: #fff;
+    border: 1px solid #d9dfe3;
+    border-radius: 8px;
+    color: #263238;
+    text-align: left;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.status-card strong {
+    font-size: 24px;
+}
+
+.status-card:hover {
+    border-color: #8bd8d8;
+}
+
+.workflow-summary {
+    background: #fff;
+    border: 1px solid #d9dfe3;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 28px;
+}
+
+.workflow-summary .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0;
+}
+
+.workflow-summary h3 {
+    margin: 0 0 6px;
+}
+
+.workflow-summary p {
+    margin: 0;
+    color: #607d8b;
+}
+
+.sop-catalog {
+    margin-top: 4px;
+}
+
+.sop-catalog .section-header {
+    margin-bottom: 18px;
+}
+
+.sop-catalog .section-header h2 {
+    margin-bottom: 4px;
+}
+
+.sop-catalog .section-header p {
+    margin: 0;
+    color: #607d8b;
+}
+
+.catalog-search {
+    margin-bottom: 20px;
+}
+
+.catalog-search label {
+    display: block;
+    margin-bottom: 7px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.catalog-search input {
+    width: 100%;
+    padding: 11px 12px;
+    border: 1px solid #cfd8dc;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+.catalog-filters {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.filter-group label {
+    display: block;
+    margin-bottom: 7px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.filter-group select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #cfd8dc;
+    border-radius: 5px;
+    background: #fff;
+    font-size: 14px;
+}
+
+.catalog-table {
+    width: 100%;
+    max-height: 600px;
+    overflow-y: auto;
+    overflow-x: auto;
+    border: 1px solid #d9dfe3;
+    border-radius: 8px;
+    background: #fff;
+}
+
+.catalog-table table {
+    width: 100%;
+    min-width: 1100px;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+
+.catalog-table th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    padding: 12px;
+    background: #f4f6f7;
+    border-bottom: 1px solid #d9dfe3;
+    text-align: left;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.catalog-table td {
+    padding: 13px 12px;
+    border-bottom: 1px solid #e6eaec;
+    white-space: nowrap;
+}
+
+.catalog-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.catalog-table tbody tr:hover {
+    background: #f8fafb;
+}
+
+.table-actions {
+    text-align: center;
+}
+
+.primary-button,
+.secondary-button,
+.danger-button {
+    padding: 9px 14px;
+    border-radius: 5px;
+    font-family: inherit;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.primary-button {
+    background: #009a9d;
+    border: 1px solid #009a9d;
+    color: #fff;
+}
+
+.primary-button:hover {
+    background: #008487;
+}
+
+.secondary-button {
+    background: #fff;
+    border: 1px solid #cfd8dc;
+    color: #263238;
+}
+
+.secondary-button:hover {
+    background: #f4f6f7;
+}
+
+.danger-button {
+    background: #fff;
+    border: 1px solid #d9534f;
+    color: #d9534f;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    margin-bottom: 7px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #cfd8dc;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+.form-group textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.sop-view.hidden {
+    display: none;
+}

@@ -30,6 +30,7 @@ body {
 
 .main-content {
     flex: 1;
+    min-width: 0;
 }
 
 
@@ -75,6 +76,9 @@ body {
     text-align: left;
 
     cursor: pointer;
+
+    text-decoration: none;
+    color: inherit;
 }
 
 

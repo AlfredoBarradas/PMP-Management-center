@@ -6,15 +6,18 @@
     height: 80px;
     background-color: #009A9D;
     border-bottom: 1px solid #dfe3e6;
-
     display: flex;
     align-items: center;
     justify-content: space-between;
-
     padding: 0 30px;
     color: #ffffff;
 }
 
+#topbar-container {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
 
 .topbar-title h2 {
     margin: 0;

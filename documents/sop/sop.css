@@ -15,7 +15,7 @@
 .control-actions {
     display: flex;
     gap: 10px;
-    margin-bottom: 20px;
+    margin: 20px 0px;
 }
 
 .control-actions button,
@@ -28,7 +28,7 @@
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 15px;
-    margin-bottom: 30px;
+    margin: 20px 0px;
 }
 
 .status-card {
@@ -59,7 +59,8 @@
     border: 1px solid #d9dfe3;
     border-radius: 8px;
     padding: 20px;
-    margin-bottom: 28px;
+    margin: 20px 0px;
+    margin-bottom: 50px;
 }
 
 .workflow-summary .section-header {
@@ -79,15 +80,15 @@
 }
 
 .sop-catalog {
-    margin-top: 4px;
+    margin: 0px;
 }
 
 .sop-catalog .section-header {
-    margin-bottom: 18px;
+    margin: 20px 0px;
 }
 
 .sop-catalog .section-header h2 {
-    margin-bottom: 4px;
+    margin-bottom: 5px;
 }
 
 .sop-catalog .section-header p {
@@ -96,19 +97,19 @@
 }
 
 .catalog-search {
-    margin-bottom: 20px;
+    margin: 20px 0px;
 }
 
 .catalog-search label {
     display: block;
-    margin-bottom: 7px;
+    margin-bottom: 5px;
     font-size: 14px;
     font-weight: 600;
 }
 
 .catalog-search input {
     width: 100%;
-    padding: 11px 12px;
+    padding: 12px;
     border: 1px solid #cfd8dc;
     border-radius: 5px;
     font-size: 14px;
@@ -118,12 +119,12 @@
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     gap: 15px;
-    margin-bottom: 20px;
+    margin: 20px 0px;
 }
 
 .filter-group label {
     display: block;
-    margin-bottom: 7px;
+    margin-bottom: 5px;
     font-size: 14px;
     font-weight: 600;
 }
@@ -187,8 +188,9 @@
 
 .primary-button,
 .secondary-button,
-.danger-button {
-    padding: 9px 14px;
+.danger-button,
+.remark-button {
+    padding: 8px 14px;
     border-radius: 5px;
     font-family: inherit;
     font-size: 14px;
@@ -220,11 +222,23 @@
     border: 1px solid #d9534f;
     color: #d9534f;
 }
+.danger-button:hover {
+    background: #fae1e1;
+}
+
+.remark-button {
+    background: #fff;
+    border: 1px solid #009a9d;
+    color: #009a9d;
+}
+.remark-button:hover {
+    background: #e9feff;
+}
 
 .form-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 18px;
+    gap: 20px;
 }
 
 .form-group {
@@ -261,4 +275,8 @@
 
 .sop-view.hidden {
     display: none;
+}
+
+.hidden {
+    display: none !important;
 }

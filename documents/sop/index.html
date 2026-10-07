@@ -25,15 +25,15 @@
             <section class="content">
 
                 <section id="sop-control" class="sop-section sop-view">
-                    <div class="section-header">
-                            <h2>Control</h2>
+                    <div>
+                        <div class="section-header">
+                                <h2>SOP Control</h2>
+                        </div>
+                        <div class="control-actions">
+                            <button type="button" class="primary-button create-sop-button">Create New SOP</button>
+                            <button type="button" class="secondary-button" data-section="sop-drafts">My Drafts</button>
+                        </div>
                     </div>
-
-                    <div class="control-actions">
-                        <button type="button" class="primary-button create-sop-button">Create New SOP</button>
-                        <button type="button" class="secondary-button" data-section="sop-drafts">My Drafts</button>
-                    </div>
-
                     <div class="document-status">
                         <button type="button" class="status-card" data-section="sop-validation">
                             <span>Pending Validation</span>
@@ -58,7 +58,7 @@
                     <section id="sop-catalog" class="sop-catalog">
                         <div class="section-header">
                             <div>
-                                <h2>SOP Catalog</h2>
+                                <h2>SOP Index</h2>
                                 <p>Search and browse released SOP documents</p>
                             </div>
                         </div>
@@ -72,43 +72,25 @@
                             <div class="filter-group">
                                 <label for="area">Area</label>
                                 <select id="area">
-                                    <option value="">All Areas</option>
-                                    <option value="Injection">Injection</option>
-                                    <option value="Stamping">Stamping</option>
+                                    <option value="">All workshop areas</option>
                                 </select>
                             </div>
                             <div class="filter-group">
                                 <label for="part-name">Part Name</label>
                                 <select id="part-name">
-                                    <option value="">All Part Names</option>
-                                    <option value="Backplane">Backplane</option>
-                                    <option value="Middle BC">Middle BC</option>
-                                    <option value="Left / Right BC">Left / Right BC</option>
-                                    <option value="Frontcover">Frontcover</option>
+                                    <option value="">All part names</option>
                                 </select>
                             </div>
                             <div class="filter-group">
                                 <label for="model">Model</label>
                                 <select id="model">
-                                    <option value="">All Models</option>
-                                    <option value="H Series">H Series</option>
-                                    <option value="K Series">K Series</option>
-                                    <option value="L Series">L Series</option>
-                                    <option value="J Series">J Series</option>
+                                    <option value="">All models series</option>
                                 </select>
                             </div>
                             <div class="filter-group">
                                 <label for="size">Size</label>
                                 <select id="size">
-                                    <option value="">All Sizes</option>
-                                    <option value="40">40</option>
-                                    <option value="43">43</option>
-                                    <option value="50">50</option>
-                                    <option value="55">55</option>
-                                    <option value="58">58</option>
-                                    <option value="65">65</option>
-                                    <option value="75">75</option>
-                                    <option value="85">85</option>
+                                    <option value="">All model sizes</option>
                                 </select>
                             </div>
                             <div class="filter-group">
@@ -137,372 +119,6 @@
                                     </tr>
                                 </thead>
                                 <tbody id="sop-catalog-body">
-                                    <tr>
-                                        <td>Injection</td>
-                                        <td>SOP-001</td>
-                                        <td>Injection</td>
-                                        <td>65A60QUR</td>
-                                        <td>Backplane</td>
-                                        <td>T450612</td>
-                                        <td>Injection Molding</td>
-                                        <td>Rev. 03</td>
-                                        <td>2026-09-20</td>
-                                        <td>Released</td>
-                                        <td>
-                                            <button type="button" class="secondary-button">View</button>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>Stamping</td>
-                                        <td>SOP-002</td>
-                                        <td>Stamping</td>
-                                        <td>58L1</td>
-                                        <td>Backplane</td>
-                                        <td>T1402139</td>
-                                        <td>Stamping</td>
-                                        <td>Rev. 02</td>
-                                        <td>2026-09-15</td>
-                                        <td>Released</td>
-                                        <td>
-                                            <button type="button" class="secondary-button">View</button>
-                                        </td>
-                                    </tr><tr>
-                                        <td>Injection</td>
-                                        <td>SOP-001</td>
-                                        <td>Injection</td>
-                                        <td>65A60QUR</td>
-                                        <td>Backplane</td>
-                                        <td>T450612</td>
-                                        <td>Injection Molding</td>
-                                        <td>Rev. 03</td>
-                                        <td>2026-09-20</td>
-                                        <td>Released</td>
-                                        <td>
-                                            <button type="button" class="secondary-button">View</button>
-                                        </td>
-                                    </tr><tr>
-                                        <td>Injection</td>
-                                        <td>SOP-001</td>
-                                        <td>Injection</td>
-                                        <td>65A60QUR</td>
-                                        <td>Backplane</td>
-                                        <td>T450612</td>
-                                        <td>Injection Molding</td>
-                                        <td>Rev. 03</td>
-                                        <td>2026-09-20</td>
-                                        <td>Released</td>
-                                        <td>
-                                            <button type="button" class="secondary-button">View</button>
-                                        </td>
-                                    </tr><tr>
-                                        <td>Injection</td>
-                                        <td>SOP-001</td>
-                                        <td>Injection</td>
-                                        <td>65A60QUR</td>
-                                        <td>Backplane</td>
-                                        <td>T450612</td>
-                                        <td>Injection Molding</td>
-                                        <td>Rev. 03</td>
-                                        <td>2026-09-20</td>
-                                        <td>Released</td>
-                                        <td>
-                                            <button type="button" class="secondary-button">View</button>
-                                        </td>
-                                    </tr><tr>
-                                        <td>Injection</td>
-                                        <td>SOP-001</td>
-                                        <td>Injection</td>
-                                        <td>65A60QUR</td>
-                                        <td>Backplane</td>
-                                        <td>T450612</td>
-                                        <td>Injection Molding</td>
-                                        <td>Rev. 03</td>
-                                        <td>2026-09-20</td>
-                                        <td>Released</td>
-                                        <td>
-                                            <button type="button" class="secondary-button">View</button>
-                                        </td>
-                                    </tr><tr>
-                                        <td>Injection</td>
-                                        <td>SOP-001</td>
-                                        <td>Injection</td>
-                                        <td>65A60QUR</td>
-                                        <td>Backplane</td>
-                                        <td>T450612</td>
-                                        <td>Injection Molding</td>
-                                        <td>Rev. 03</td>
-                                        <td>2026-09-20</td>
-                                        <td>Released</td>
-                                        <td>
-                                            <button type="button" class="secondary-button">View</button>
-                                        </td>
-                                    </tr><tr>
-                                        <td>Injection</td>
-                                        <td>SOP-001</td>
-                                        <td>Injection</td>
-                                        <td>65A60QUR</td>
-                                        <td>Backplane</td>
-                                        <td>T450612</td>
-                                        <td>Injection Molding</td>
-                                        <td>Rev. 03</td>
-                                        <td>2026-09-20</td>
-                                        <td>Released</td>
-                                        <td>
-                                            <button type="button" class="secondary-button">View</button>
-                                        </td>
-                                    </tr><tr>
-                                        <td>Injection</td>
-                                        <td>SOP-001</td>
-                                        <td>Injection</td>
-                                        <td>65A60QUR</td>
-                                        <td>Backplane</td>
-                                        <td>T450612</td>
-                                        <td>Injection Molding</td>
-                                        <td>Rev. 03</td>
-                                        <td>2026-09-20</td>
-                                        <td>Released</td>
-                                        <td>
-                                            <button type="button" class="secondary-button">View</button>
-                                        </td>
-                                    </tr><tr>
-                                        <td>Injection</td>
-                                        <td>SOP-001</td>
-                                        <td>Injection</td>
-                                        <td>65A60QUR</td>
-                                        <td>Backplane</td>
-                                        <td>T450612</td>
-                                        <td>Injection Molding</td>
-                                        <td>Rev. 03</td>
-                                        <td>2026-09-20</td>
-                                        <td>Released</td>
-                                        <td>
-                                            <button type="button" class="secondary-button">View</button>
-                                        </td>
-                                    </tr><tr>
-                                        <td>Injection</td>
-                                        <td>SOP-001</td>
-                                        <td>Injection</td>
-                                        <td>65A60QUR</td>
-                                        <td>Backplane</td>
-                                        <td>T450612</td>
-                                        <td>Injection Molding</td>
-                                        <td>Rev. 03</td>
-                                        <td>2026-09-20</td>
-                                        <td>Released</td>
-                                        <td>
-                                            <button type="button" class="secondary-button">View</button>
-                                        </td>
-                                    </tr><tr>
-                                        <td>Injection</td>
-                                        <td>SOP-001</td>
-                                        <td>Injection</td>
-                                        <td>65A60QUR</td>
-                                        <td>Backplane</td>
-                                        <td>T450612</td>
-                                        <td>Injection Molding</td>
-                                        <td>Rev. 03</td>
-                                        <td>2026-09-20</td>
-                                        <td>Released</td>
-                                        <td>
-                                            <button type="button" class="secondary-button">View</button>
-                                        </td>
-                                    </tr><tr>
-                                        <td>Injection</td>
-                                        <td>SOP-001</td>
-                                        <td>Injection</td>
-                                        <td>65A60QUR</td>
-                                        <td>Backplane</td>
-                                        <td>T450612</td>
-                                        <td>Injection Molding</td>
-                                        <td>Rev. 03</td>
-                                        <td>2026-09-20</td>
-                                        <td>Released</td>
-                                        <td>
-                                            <button type="button" class="secondary-button">View</button>
-                                        </td>
-                                    </tr><tr>
-                                        <td>Injection</td>
-                                        <td>SOP-001</td>
-                                        <td>Injection</td>
-                                        <td>65A60QUR</td>
-                                        <td>Backplane</td>
-                                        <td>T450612</td>
-                                        <td>Injection Molding</td>
-                                        <td>Rev. 03</td>
-                                        <td>2026-09-20</td>
-                                        <td>Released</td>
-                                        <td>
-                                            <button type="button" class="secondary-button">View</button>
-                                        </td>
-                                    </tr><tr>
-                                        <td>Injection</td>
-                                        <td>SOP-001</td>
-                                        <td>Injection</td>
-                                        <td>65A60QUR</td>
-                                        <td>Backplane</td>
-                                        <td>T450612</td>
-                                        <td>Injection Molding</td>
-                                        <td>Rev. 03</td>
-                                        <td>2026-09-20</td>
-                                        <td>Released</td>
-                                        <td>
-                                            <button type="button" class="secondary-button">View</button>
-                                        </td>
-                                    </tr><tr>
-                                        <td>Injection</td>
-                                        <td>SOP-001</td>
-                                        <td>Injection</td>
-                                        <td>65A60QUR</td>
-                                        <td>Backplane</td>
-                                        <td>T450612</td>
-                                        <td>Injection Molding</td>
-                                        <td>Rev. 03</td>
-                                        <td>2026-09-20</td>
-                                        <td>Released</td>
-                                        <td>
-                                            <button type="button" class="secondary-button">View</button>
-                                        </td>
-                                    </tr><tr>
-                                        <td>Injection</td>
-                                        <td>SOP-001</td>
-                                        <td>Injection</td>
-                                        <td>65A60QUR</td>
-                                        <td>Backplane</td>
-                                        <td>T450612</td>
-                                        <td>Injection Molding</td>
-                                        <td>Rev. 03</td>
-                                        <td>2026-09-20</td>
-                                        <td>Released</td>
-                                        <td>
-                                            <button type="button" class="secondary-button">View</button>
-                                        </td>
-                                    </tr><tr>
-                                        <td>Injection</td>
-                                        <td>SOP-001</td>
-                                        <td>Injection</td>
-                                        <td>65A60QUR</td>
-                                        <td>Backplane</td>
-                                        <td>T450612</td>
-                                        <td>Injection Molding</td>
-                                        <td>Rev. 03</td>
-                                        <td>2026-09-20</td>
-                                        <td>Released</td>
-                                        <td>
-                                            <button type="button" class="secondary-button">View</button>
-                                        </td>
-                                    </tr><tr>
-                                        <td>Injection</td>
-                                        <td>SOP-001</td>
-                                        <td>Injection</td>
-                                        <td>65A60QUR</td>
-                                        <td>Backplane</td>
-                                        <td>T450612</td>
-                                        <td>Injection Molding</td>
-                                        <td>Rev. 03</td>
-                                        <td>2026-09-20</td>
-                                        <td>Released</td>
-                                        <td>
-                                            <button type="button" class="secondary-button">View</button>
-                                        </td>
-                                    </tr><tr>
-                                        <td>Injection</td>
-                                        <td>SOP-001</td>
-                                        <td>Injection</td>
-                                        <td>65A60QUR</td>
-                                        <td>Backplane</td>
-                                        <td>T450612</td>
-                                        <td>Injection Molding</td>
-                                        <td>Rev. 03</td>
-                                        <td>2026-09-20</td>
-                                        <td>Released</td>
-                                        <td>
-                                            <button type="button" class="secondary-button">View</button>
-                                        </td>
-                                    </tr><tr>
-                                        <td>Injection</td>
-                                        <td>SOP-001</td>
-                                        <td>Injection</td>
-                                        <td>65A60QUR</td>
-                                        <td>Backplane</td>
-                                        <td>T450612</td>
-                                        <td>Injection Molding</td>
-                                        <td>Rev. 03</td>
-                                        <td>2026-09-20</td>
-                                        <td>Released</td>
-                                        <td>
-                                            <button type="button" class="secondary-button">View</button>
-                                        </td>
-                                    </tr><tr>
-                                        <td>Injection</td>
-                                        <td>SOP-001</td>
-                                        <td>Injection</td>
-                                        <td>65A60QUR</td>
-                                        <td>Backplane</td>
-                                        <td>T450612</td>
-                                        <td>Injection Molding</td>
-                                        <td>Rev. 03</td>
-                                        <td>2026-09-20</td>
-                                        <td>Released</td>
-                                        <td>
-                                            <button type="button" class="secondary-button">View</button>
-                                        </td>
-                                    </tr><tr>
-                                        <td>Injection</td>
-                                        <td>SOP-001</td>
-                                        <td>Injection</td>
-                                        <td>65A60QUR</td>
-                                        <td>Backplane</td>
-                                        <td>T450612</td>
-                                        <td>Injection Molding</td>
-                                        <td>Rev. 03</td>
-                                        <td>2026-09-20</td>
-                                        <td>Released</td>
-                                        <td>
-                                            <button type="button" class="secondary-button">View</button>
-                                        </td>
-                                    </tr><tr>
-                                        <td>Injection</td>
-                                        <td>SOP-001</td>
-                                        <td>Injection</td>
-                                        <td>65A60QUR</td>
-                                        <td>Backplane</td>
-                                        <td>T450612</td>
-                                        <td>Injection Molding</td>
-                                        <td>Rev. 03</td>
-                                        <td>2026-09-20</td>
-                                        <td>Released</td>
-                                        <td>
-                                            <button type="button" class="secondary-button">View</button>
-                                        </td>
-                                    </tr><tr>
-                                        <td>Injection</td>
-                                        <td>SOP-001</td>
-                                        <td>Injection</td>
-                                        <td>65A60QUR</td>
-                                        <td>Backplane</td>
-                                        <td>T450612</td>
-                                        <td>Injection Molding</td>
-                                        <td>Rev. 03</td>
-                                        <td>2026-09-20</td>
-                                        <td>Released</td>
-                                        <td>
-                                            <button type="button" class="secondary-button">View</button>
-                                        </td>
-                                    </tr><tr>
-                                        <td>Injection</td>
-                                        <td>SOP-001</td>
-                                        <td>Injection</td>
-                                        <td>65A60QUR</td>
-                                        <td>Backplane</td>
-                                        <td>T450612</td>
-                                        <td>Injection Molding</td>
-                                        <td>Rev. 03</td>
-                                        <td>2026-09-20</td>
-                                        <td>Released</td>
-                                        <td>
-                                            <button type="button" class="secondary-button">View</button>
-                                        </td>
-                                    </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -513,42 +129,67 @@
                     <div class="section-header">
                         <div>
                             <h2 id="sop-editor-title">Create New SOP</h2>
-                            <p>Create or edit a Standard Operating Procedure</p>
+                            <p id="sop-editor-description">Create a new standard operating process.</p>
                         </div>
                         <button type="button" class="secondary-button" data-section="sop-control">Back</button>
+                        
                     </div>
-
+                    <div id="revision-info" class="form-section hidden">
+                        <h3>Revision Information</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="revision-sop-code">SOP Code</label>
+                                <input type="text" id="revision-sop-code" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label for="revision-current">Current Revision</label>
+                                <input type="text" id="revision-current" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label for="revision-new">New Revision</label>
+                                <input type="text" id="revision-new" readonly>
+                            </div>
+                        </div>
+                    </div>
                     <form id="sop-form">
+                        <input type="hidden" id="sop-mode" value="create">
+                        <input type="hidden" id="sop-id" value="">
                         <div class="form-section">
                             <h3>Basic Information</h3>
                             <div class="form-grid">
                                 <div class="form-group">
-                                    <label for="sop-code">SOP Code</label>
-                                    <input type="text" id="sop-code" name="sop-code" placeholder="SOP-001">
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="sop-area">Area</label>
-                                    <select id="sop-area" name="sop-area">
-                                        <option value="">Select Area</option>
-                                        <option value="Injection">Injection</option>
-                                        <option value="Stamping">Stamping</option>
+                                    <label for="sop-workshop">Workshop area</label>
+                                    <select id="sop-workshop" name="sop-workshop">
+                                        <option value="">--None--</option>
                                     </select>
                                 </div>
 
                                 <div class="form-group">
-                                    <label for="sop-process">Process</label>
-                                    <input type="text" id="sop-process" name="sop-process" placeholder="Injection Molding">
+                                    <label for="sop-process">Process area</label>
+                                    <select id="sop-process" name="sop-process">
+                                        <option value="">--None--</option>
+                                    </select>
                                 </div>
 
                                 <div class="form-group">
-                                    <label for="sop-model">Model</label>
-                                    <input type="text" id="sop-model" name="sop-model" placeholder="65A60QUR">
+                                    <label for="sop-model-series">Model series</label>
+                                    <select id="sop-model-series" name="sop-model-series">
+                                        <option value="">--None--</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="sop-model">Model size</label>
+                                    <select id="sop-model" name="sop-model">
+                                        <option value="">--None--</option>
+                                    </select>
                                 </div>
 
                                 <div class="form-group">
                                     <label for="sop-part-name">Part Name</label>
-                                    <input type="text" id="sop-part-name" name="sop-part-name" placeholder="Backplane">
+                                    <select id="sop-part-name" name="sop-part-name">
+                                        <option value="">--None--</option>
+                                    </select>
                                 </div>
 
                                 <div class="form-group">
@@ -558,24 +199,26 @@
 
                                 <div class="form-group">
                                     <label for="sop-operation">Operation Name</label>
-                                    <input type="text" id="sop-operation" name="sop-operation" placeholder="Injection Molding">
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="sop-revision">Revision</label>
-                                    <input type="text" id="sop-revision" name="sop-revision" value="Draft 01">
+                                    <input type="text" id="sop-operation" name="sop-operation" placeholder="Colocacion de...">
                                 </div>
                             </div>
                         </div>
 
                         <div class="form-section">
-                            <h3>Document Description</h3>
+                            <h3 id="sop-description-title">Description</h3>
                             <div class="form-group">
-                                <label for="sop-description">Description</label>
+                                <label for="sop-description" id="sop-description-label">Description</label>
                                 <textarea id="sop-description" name="sop-description" rows="5" placeholder="Describe the purpose and scope of this SOP."></textarea>
                             </div>
                         </div>
-
+                        <div class="form-section">
+                            <h3>Document File</h3>
+                            <div class="form-group">
+                                <label for="sop-file">SOP File</label>
+                                <input type="file" id="sop-file" name="sop-file" accept=".pdf,.xlsx,.xls,.docx,.doc">
+                                <small id="sop-file-help">Upload the document associated with this SOP.</small>
+                            </div>
+                        </div>
                         <!-- EDITOR ACTIONS -->
                         <div class="form-actions">
                             <button type="button" class="secondary-button"id="save-sop-draft">Save Draft</button>

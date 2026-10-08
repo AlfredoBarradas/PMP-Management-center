@@ -1,28 +1,110 @@
 (() => {
+    async function loadSidebar() {
+        const container = document.getElementById("sidebar-container");
 
-    fetch("/components/sidebar/sidebar.html")
-        .then(response => response.text())
-        .then(data => {
+        if (!container) {
+            return;
+        }
 
-            const container = document.getElementById("sidebar-container");
+        const response = await fetch("/components/sidebar/sidebar.html");
 
-            container.innerHTML = data;
+        if (!response.ok) {
+            console.error("Error loading sidebar:", response.status);
+            return;
+        }
 
-            const currentPage = document.body.dataset.page;
+        container.innerHTML = await response.text();
 
-            const activeLink = container.querySelector(
-                `[data-page="${currentPage}"]`
-            );
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = "/components/sidebar/sidebar.css";
+        document.head.appendChild(link);
 
-            if (activeLink) {
-                activeLink.classList.add("active");
+        const authData = await initializeSupabaseAuth();
+
+        if (!authData?.user) {
+            return;
+        }
+
+        applySidebarPermissions();
+        setActiveSidebarItem();
+        initializeSidebarActions();
+    }
+
+    function initializeSidebarActions() {
+        const logoutButton = document.getElementById("logout-button");
+
+        if (!logoutButton) {
+            return;
+        }
+
+        logoutButton.addEventListener("click", async () => {
+            logoutButton.disabled = true;
+
+            const success = await signOutUser();
+
+            if (success) {
+                window.location.href = "/auth/";
+                return;
             }
 
+            logoutButton.disabled = false;
         });
+    }
 
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.href = "/components/sidebar/sidebar.css";
-    document.head.appendChild(link);
+    function hasViewPermission(modules) {
+        if (isAdmin()) {
+            return true;
+        }
 
+        return currentUserPermissions.some(permission => {
+            return modules.includes(permission.module) &&
+                permission.action.toLowerCase() === "view";
+        });
+    }
+
+    function applySidebarPermissions() {
+        const permissionMap = {
+            "Documents": ["SOP", "Layout", "TI", "MDR"],
+            "Losstime": ["Losstime"],
+            "Efficiency": ["Efficiency"],
+            "Scrap": ["Scrap"],
+            "Hour by Hour": ["Hour by Hour"],
+            "New Models": ["New Models"],
+            "Production Release": ["Production"],
+            "PFMEA": ["PFMEA"]
+        };
+
+        const sidebarLinks = document.querySelectorAll(".sidebar-menu a");
+
+        sidebarLinks.forEach(link => {
+            const page = link.dataset.page;
+
+            if (!permissionMap[page]) {
+                return;
+            }
+
+            const allowed = hasViewPermission(permissionMap[page]);
+
+            if (!allowed) {
+                link.remove();
+            }
+        });
+    }
+
+    function setActiveSidebarItem() {
+        const currentPath = window.location.pathname.replace(/\/+$/, "") || "/";
+        const sidebarLinks = document.querySelectorAll(".sidebar-menu a");
+
+        sidebarLinks.forEach(link => {
+            const linkUrl = new URL(link.href, window.location.origin);
+            const linkPath = linkUrl.pathname.replace(/\/+$/, "") || "/";
+
+            if (linkPath === currentPath) {
+                link.classList.add("active");
+            }
+        });
+    }
+
+    loadSidebar();
 })();

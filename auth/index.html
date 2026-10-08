@@ -16,12 +16,25 @@
             </div>
             <form id="login-form">
                 <div class="form-group">
-                    <label for="login-email">Email</label>
-                    <input type="email" id="login-email" required>
+                    <label for="login-employee-number">Employee Number</label>
+                    <input
+                        type="text"
+                        id="login-employee-number"
+                        name="employee_number"
+                        autocomplete="username"
+                        inputmode="numeric"
+                        required
+                    >
                 </div>
                 <div class="form-group">
                     <label for="login-password">Password</label>
-                    <input type="password" id="login-password" required>
+                    <input
+                        type="password"
+                        id="login-password"
+                        name="password"
+                        autocomplete="current-password"
+                        required
+                    >
                 </div>
                 <button type="submit" class="primary-button">Sign In</button>
                 <p id="login-message" class="auth-message"></p>

@@ -1,49 +1,49 @@
 (() => {
+    async function loadTopbar() {
+        const container = document.getElementById("topbar-container");
 
-    fetch("/components/topbar/topbar.html")
-        .then(response => response.text())
-        .then(data => {
+        if (!container) {
+            return;
+        }
 
-            document
-                .getElementById("topbar-container")
-                .innerHTML = data;
+        const response = await fetch("/components/topbar/topbar.html");
 
-            const pageName = document.body.dataset.page;
+        if (!response.ok) {
+            console.error("Error loading topbar:", response.status);
+            return;
+        }
 
-            document.getElementById("page-title").textContent = pageName;
+        container.innerHTML = await response.text();
 
-    });
+        const pageName = document.body.dataset.page;
+        const pageTitle = document.getElementById("page-title");
+
+        if (pageTitle) {
+            pageTitle.textContent = pageName ?? "";
+        }
+
+        const authData = await initializeSupabaseAuth();
+
+        if (!authData?.user || !authData.profile || !authData.roleData) {
+            return;
+        }
+
+        const userNameElement = document.getElementById("current-user-name");
+        const roleElement = document.getElementById("current-user-role");
+
+        if (userNameElement) {
+            userNameElement.textContent = authData.profile.full_name ?? "";
+        }
+
+        if (roleElement) {
+            roleElement.textContent = authData.roleData.name ?? "";
+        }
+    }
 
     const link = document.createElement("link");
     link.rel = "stylesheet";
     link.href = "/components/topbar/topbar.css";
     document.head.appendChild(link);
 
-    async function initializeTopbarUser() {
-        const authData = await initializeSupabaseAuth();
-        if (!authData?.user) {
-            return;
-        }
-        const emailElement = document.getElementById("current-user-email");
-        const roleElement = document.getElementById("current-user-role");
-        if (emailElement) {
-            emailElement.textContent = authData.user.email;
-        }
-        if (roleElement) {
-            roleElement.textContent = authData.role;
-        }
-        const logoutButton = document.getElementById("logout-button");
-        if (logoutButton) {
-            logoutButton.addEventListener("click", async () => {
-                const { error } = await supabaseClient.auth.signOut();
-                if (error) {
-                    console.error("Logout error:", error);
-                    return;
-                }
-                window.location.href = "/auth/";
-            });
-        }
-    }
-    initializeTopbarUser();
-    
+    loadTopbar();
 })();

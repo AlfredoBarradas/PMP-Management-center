@@ -5,7 +5,7 @@
 
 
     async function initializePage() {
-        const authData = await initializeSupabaseAuth();
+        const authData = await requireAuth();
         if (!authData?.user) {
             window.location.replace("/auth/");
             return;

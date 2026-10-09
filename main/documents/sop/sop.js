@@ -36,7 +36,7 @@ async function initializeSopPage() {
             const ids = active.map(item => item.id);
             const [taskResult, nodeResult] = await Promise.all([
                 supabaseClient.from("workflow_tasks").select("instance_id,node_id,status").in("instance_id", ids),
-                supabaseClient.from("workflow_nodes").select("id,name,label,code,node_type")
+                supabaseClient.from("workflow_nodes").select("id,label,node_type,required_permission_code")
             ]);
             if (taskResult.error) throw taskResult.error;
             if (nodeResult.error) throw nodeResult.error;
@@ -46,14 +46,19 @@ async function initializeSopPage() {
             let approvalCount = 0;
             pending.forEach(task => {
                 const node = nodeMap.get(String(task.node_id));
-                const stage = [node?.name,node?.label,node?.code,node?.node_type].filter(Boolean).join(" ").toLowerCase();
-                if (stage.includes("validat")) validationCount++;
-                else if (stage.includes("approv")) approvalCount++;
+                const permission = String(node?.required_permission_code || "").toLowerCase();
+                const stage = [node?.label,node?.node_type].filter(Boolean).join(" ").toLowerCase();
+                if (permission === "documents.sop.validate" || stage.includes("validat")) validationCount++;
+                else if (permission === "documents.sop.approve" || stage.includes("approv")) approvalCount++;
             });
             document.getElementById("pending-validation-count").textContent = String(validationCount);
             document.getElementById("pending-approval-count").textContent = String(approvalCount);
         } catch (error) {
             console.error("Unable to refresh SOP workflow counters:", error);
+            const validationCount = document.getElementById("pending-validation-count");
+            const approvalCount = document.getElementById("pending-approval-count");
+            if (validationCount) validationCount.title = "Could not refresh. See browser console.";
+            if (approvalCount) approvalCount.title = "Could not refresh. See browser console.";
         }
     }
     function showSection(sectionId) {

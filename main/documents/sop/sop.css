@@ -405,3 +405,47 @@
 .sop-revision-section small {
     color: #666;
 }
+
+/* SOP form required-field validation */
+.required-marker {
+    color: #dc2626;
+    font-weight: 800;
+    margin-left: 3px;
+}
+.sop-validation-alert {
+    border: 2px dashed #dc2626;
+    border-radius: 8px;
+    background: #fff1f2;
+    color: #991b1b;
+    padding: 12px 16px;
+    margin: 0 0 18px;
+}
+.sop-validation-alert h3 {
+    margin: 0 0 6px;
+    color: #991b1b;
+    font-size: 15px;
+}
+.sop-validation-alert ul {
+    margin: 6px 0 0;
+    padding-left: 22px;
+}
+.sop-validation-alert li + li {
+    margin-top: 3px;
+}
+.sop-field-invalid input,
+.sop-field-invalid select,
+.sop-field-invalid textarea {
+    border: 2px dashed #dc2626 !important;
+    outline: none;
+    background-color: #fff7f7;
+}
+.sop-field-invalid label {
+    color: #b91c1c;
+    font-weight: 700;
+}
+.sop-field-error {
+    display: block;
+    color: #b91c1c;
+    font-size: 12px;
+    margin-top: 4px;
+}

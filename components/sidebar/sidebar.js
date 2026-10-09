@@ -69,10 +69,8 @@
             "Losstime": ["Losstime"],
             "Efficiency": ["Efficiency"],
             "Scrap": ["Scrap"],
-            "Hour by Hour": ["Hour by Hour"],
-            "New Models": ["New Models"],
-            "Production Release": ["Production"],
-            "PFMEA": ["PFMEA"]
+            "Production": ["Production"],
+            "New Models": ["New Models", "PFMEA"]
         };
 
         const sidebarLinks = document.querySelectorAll(".sidebar-menu a");

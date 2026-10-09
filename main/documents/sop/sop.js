@@ -39,6 +39,7 @@ async function initializeSopPage() {
         document.getElementById("sop-operation").readOnly = !editable;
     }
     function setCreateMode() {
+        if (typeof editingRevisionId !== "undefined") editingRevisionId = null;
         sopMode.value = "create";
         sopId.value = "";
         editorTitle.textContent = "Create New SOP";
@@ -472,8 +473,8 @@ async function initializeSopPage() {
             showSection("sop-control");
             await loadSopCatalog();
         } catch (error) {
-            console.error("Error creating SOP:", error);
-            alert("Error creating SOP. " + (error?.message || "Check the browser console for details."));
+            console.error("Error saving SOP:", error);
+            alert("Error saving SOP. " + (error?.message || "Check the browser console for details."));
         } finally {
             saveButton.disabled = false;
             submitButton.disabled = false;

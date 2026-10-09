@@ -37,11 +37,11 @@
                     <div class="document-status">
                         <button type="button" class="status-card" data-section="sop-validation">
                             <span>Pending Validation</span>
-                            <strong>8</strong>
+                            <strong id="pending-validation-count">0</strong>
                         </button>
                         <button type="button" class="status-card" data-section="sop-approval">
                             <span>Pending Approval</span>
-                            <strong>5</strong>
+                            <strong id="pending-approval-count">0</strong>
                         </button>
                     </div>
 
@@ -300,33 +300,7 @@
                                 </tr>
                             </thead>
 
-                            <tbody>
-                                <tr>
-                                    <td>SOP-023</td>
-                                    <td>65A60QUR</td>
-                                    <td>T450612</td>
-                                    <td>PE Engineer</td>
-                                    <td>QM Engineer</td>
-                                    <td>2026-10-05</td>
-                                    <td class="table-actions">
-                                        <button type="button" class="secondary-button">Review</button>
-                                        <button type="button" class="primary-button">Validate</button>
-                                    </td>
-                                </tr>
-
-                                <tr>
-                                    <td>SOP-024</td>
-                                    <td>58L1</td>
-                                    <td>T1402139</td>
-                                    <td>PE Engineer</td>
-                                    <td>QM Inspector</td>
-                                    <td>2026-10-04</td>
-                                    <td class="table-actions">
-                                        <button type="button" class="secondary-button">Review</button>
-                                        <button type="button" class="primary-button">Validate</button>
-                                    </td>
-                                </tr>
-                            </tbody>
+                            <tbody id="sop-validation-body"><tr><td colspan="7">Loading workflow tasks...</td></tr></tbody>
                         </table>
                     </div>
                 </section>
@@ -354,20 +328,7 @@
                                 </tr>
                             </thead>
 
-                            <tbody>
-                                <tr>
-                                    <td>SOP-025</td>
-                                    <td>50A60QUR</td>
-                                    <td>T450612</td>
-                                    <td>QM Engineer</td>
-                                    <td>PE Manager</td>
-                                    <td>2026-10-04</td>
-                                    <td class="table-actions">
-                                        <button type="button" class="secondary-button">Review</button>
-                                        <button type="button" class="primary-button">Approve</button>
-                                    </td>
-                                </tr>
-                            </tbody>
+                            <tbody id="sop-approval-body"><tr><td colspan="7">Loading workflow tasks...</td></tr></tbody>
                         </table>
                     </div>
                 </section>
@@ -394,29 +355,7 @@
                                 </tr>
                             </thead>
 
-                            <tbody>
-                                <tr>
-                                    <td>SOP-023</td>
-                                    <td>Validation</td>
-                                    <td>QM Engineer</td>
-                                    <td>2026-10-05</td>
-                                    <td>Pending</td>
-                                    <td>
-                                        <button type="button" class="primary-button view-flow-button">View Flow</button>
-                                    </td>
-                                </tr>
-
-                                <tr>
-                                    <td>SOP-025</td>
-                                    <td>Approval</td>
-                                    <td>PE Manager</td>
-                                    <td>2026-10-04</td>
-                                    <td>Pending</td>
-                                    <td>
-                                        <button type="button" class="primary-button view-flow-button">View Flow</button>
-                                    </td>
-                                </tr>
-                            </tbody>
+                            <tbody id="sop-workflow-body"><tr><td colspan="6">Loading workflow...</td></tr></tbody>
                         </table>
                     </div>
                 </section>

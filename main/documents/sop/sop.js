@@ -163,16 +163,16 @@ async function initializeSopPage() {
         });
     });
     document.getElementById("save-sop-draft").addEventListener("click", async () => {
-        if (sopMode.value !== "create") {
-            alert("Saving revisions and editing existing drafts are not connected yet.");
+        if (sopMode.value === "revision") {
+            alert("Saving revisions is not connected yet.");
             return;
         }
         await saveNewSop({ submitForValidation: false });
     });
     sopForm.addEventListener("submit", async event => {
         event.preventDefault();
-        if (sopMode.value !== "create") {
-            alert("Submitting revisions and edited drafts is not connected yet.");
+        if (sopMode.value === "revision") {
+            alert("Submitting revisions is not connected yet.");
             return;
         }
         await saveNewSop({ submitForValidation: true });
@@ -378,6 +378,46 @@ async function initializeSopPage() {
         saveButton.textContent = "Saving...";
         submitButton.textContent = submitForValidation ? "Submitting..." : originalSubmitText;
         try {
+            if (sopMode.value === "edit") {
+                if (!editingRevisionId) throw new Error("Draft revision is missing. Reopen the draft and try again.");
+                const { data: updateResult, error: updateError } = await supabaseClient.rpc("update_sop_draft", {
+                    p_sop_id: Number(sopId.value),
+                    p_revision_id: Number(editingRevisionId),
+                    p_workshop_id: Number(workshopId),
+                    p_process_area_id: Number(processAreaId),
+                    p_model_id: Number(modelId),
+                    p_part_name_id: Number(partNameId),
+                    p_part_number: partNumber,
+                    p_operation_name: operationName,
+                    p_description: description
+                });
+                if (updateError) throw updateError;
+                if (submitForValidation) {
+                    const { error: workflowError } = await supabaseClient.rpc("workflow_start_instance", {
+                        p_definition_id: 1,
+                        p_source_document_id: Number(sopId.value),
+                        p_source_revision_id: Number(editingRevisionId),
+                        p_metadata: { source: "sop_form", submitted_from: "Submit for Validation" }
+                    });
+                    if (workflowError) {
+                        console.error("Draft saved but workflow submission failed:", workflowError);
+                        alert("Draft changes were saved, but submission for validation failed: " + workflowError.message);
+                        await loadMyDrafts();
+                        await loadSopCatalog();
+                        return;
+                    }
+                    alert("Draft updated and submitted for validation.");
+                } else {
+                    alert("Draft updated successfully. No official SOP code has been assigned.");
+                }
+                sopForm.reset();
+                editingRevisionId = null;
+                setCreateMode();
+                showSection("sop-drafts");
+                await loadMyDrafts();
+                await loadSopCatalog();
+                return;
+            }
             const { data, error } = await supabaseClient.rpc("create_new_sop", {
                 p_workshop_id: Number(workshopId),
                 p_process_area_id: Number(processAreaId),

@@ -557,6 +557,8 @@ async function initializeSopPage() {
         return new Date(dateString).toLocaleDateString("en-US");
     }
     loadSopCatalog();
+    loadMyDrafts();
+    document.querySelectorAll('[data-section="sop-drafts"]').forEach(button => button.addEventListener("click", loadMyDrafts));
 
     function openSopModal() {
         document.getElementById("sop-modal").classList.remove("hidden");

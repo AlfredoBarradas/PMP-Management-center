@@ -88,12 +88,51 @@ async function initializeSopPage() {
         setRevisionMode(sop);
         showSection("sop-create");
     }
-    function openEditSop() {
-        editorTitle.textContent = "Edit Draft SOP";
-        sopMode.value = "edit";
-        revisionInfo.classList.add("hidden");
-        setFormEditable(true);
-        showSection("sop-create");
+    let editingRevisionId = null;
+    async function openEditSop(draftSopId) {
+        try {
+            const { data: authResult, error: authError } = await supabaseClient.auth.getUser();
+            if (authError) throw authError;
+            const userId = authResult?.user?.id;
+            if (!userId) throw new Error("Please sign in again.");
+            const { data: sop, error } = await supabaseClient
+                .from("sop_documents")
+                .select("id,workshop_id,process_area_id,model_id,part_name_id,part_number,operation_name,created_by,models(model_series_id),sop_revisions(id,revision_number,revision_code,status,description,created_by,created_at)")
+                .eq("id", Number(draftSopId))
+                .eq("created_by", userId)
+                .single();
+            if (error) throw error;
+            const revision = (sop.sop_revisions || []).find(item => String(item.status || "").toLowerCase() === "draft" && String(item.created_by || sop.created_by) === String(userId));
+            if (!revision) throw new Error("This SOP has no editable Draft revision.");
+            await loadWorkshops();
+            document.getElementById("sop-workshop").value = String(sop.workshop_id);
+            await loadProcessAreas(sop.workshop_id);
+            document.getElementById("sop-process").value = String(sop.process_area_id);
+            await loadPartNames(sop.workshop_id);
+            document.getElementById("sop-part-name").value = String(sop.part_name_id);
+            await loadModelSeries();
+            const seriesId = sop.models?.model_series_id;
+            document.getElementById("sop-model-series").value = String(seriesId || "");
+            await loadModels(seriesId);
+            document.getElementById("sop-model").value = String(sop.model_id);
+            document.getElementById("sop-part-number").value = sop.part_number || "";
+            document.getElementById("sop-operation").value = sop.operation_name || "";
+            document.getElementById("sop-description").value = revision.description || "";
+            document.getElementById("sop-file").value = "";
+            sopMode.value = "edit";
+            sopId.value = String(sop.id);
+            editingRevisionId = revision.id;
+            editorTitle.textContent = "Edit Draft SOP";
+            editorDescription.textContent = "Update the details of this draft before submitting it for validation.";
+            descriptionTitle.textContent = "Description";
+            descriptionLabel.textContent = "Description";
+            revisionInfo.classList.add("hidden");
+            setFormEditable(true);
+            showSection("sop-create");
+        } catch (error) {
+            console.error("Error opening draft for editing:", error);
+            alert("Could not open this draft for editing. " + (error?.message || ""));
+        }
     }
     navigationButtons.forEach(button => {
         button.addEventListener("click", () => {
@@ -104,7 +143,7 @@ async function initializeSopPage() {
         button.addEventListener("click", openCreateSop);
     });
     document.querySelectorAll(".edit-draft-button").forEach(button => {
-        button.addEventListener("click", openEditSop);
+        button.addEventListener("click", () => openEditSop(button.dataset.sopId));
     });
     document.querySelectorAll(".revision-sop-button").forEach(button => {
         button.addEventListener("click", () => {

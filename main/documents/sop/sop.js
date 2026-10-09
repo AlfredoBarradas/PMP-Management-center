@@ -573,7 +573,7 @@ async function initializeSopPage() {
                 .map(revision => ({doc, revision})))
                 .sort((a,b) => new Date(b.revision.created_at || b.doc.created_at) - new Date(a.revision.created_at || a.doc.created_at));
             if (!drafts.length) { body.innerHTML = '<tr><td colspan="8">You have no draft SOPs.</td></tr>'; return; }
-            body.innerHTML = drafts.map(item => '<tr><td>' + escapeHtml(item.doc.sop_code || "Unassigned") + '</td><td>' + escapeHtml(item.doc.models?.name || "") + '</td><td>' + escapeHtml(item.doc.part_names?.name || "") + '</td><td>' + escapeHtml(item.doc.part_number || "") + '</td><td>' + escapeHtml(item.doc.operation_name || "") + '</td><td>' + escapeHtml(item.revision.revision_code || "") + '</td><td>' + escapeHtml(formatDate(item.revision.created_at || item.doc.created_at)) + '</td><td class="table-actions"><button type="button" class="secondary-button draft-view-button" data-sop-id="' + escapeHtml(item.doc.id) + '">View</button><button type="button" class="secondary-button edit-draft-button" data-sop-id="' + escapeHtml(item.doc.id) + '">Edit</button><button type="button" class="primary-button draft-submit-button" data-sop-id="' + escapeHtml(item.doc.id) + '" data-revision-id="' + escapeHtml(item.revision.id) + '" data-sop-code="' + escapeHtml(item.doc.sop_code || "Unassigned") + '" data-revision-code="' + escapeHtml(item.revision.revision_code) + '">Submit for Validation</button></td></tr>').join("");
+            body.innerHTML = drafts.map(item => '<tr><td>' + escapeHtml(item.doc.sop_code || "Unassigned") + '</td><td>' + escapeHtml(item.doc.models?.name || "") + '</td><td>' + escapeHtml(item.doc.part_names?.name || "") + '</td><td>' + escapeHtml(item.doc.part_number || "") + '</td><td>' + escapeHtml(item.doc.operation_name || "") + '</td><td>' + escapeHtml(item.revision.revision_code || "") + '</td><td>' + escapeHtml(formatDate(item.revision.created_at || item.doc.created_at)) + '</td><td class="table-actions"><button type="button" class="secondary-button draft-view-button" data-sop-id="' + escapeHtml(item.doc.id) + '">View</button><button type="button" class="secondary-button edit-draft-button" data-sop-id="' + escapeHtml(item.doc.id) + '">Edit</button><button type="button" class="primary-button draft-submit-button" data-sop-id="' + escapeHtml(item.doc.id) + '" data-revision-id="' + escapeHtml(item.revision.id) + '" data-sop-code="' + escapeHtml(item.doc.sop_code || "Unassigned") + '" data-revision-code="' + escapeHtml(item.revision.revision_code) + '">Submit</button><button type="button" class="danger-button delete-draft-button" data-sop-id="' + escapeHtml(item.doc.id) + '">Delete</button></td></tr>').join("");
         } catch (error) {
             console.error("Error loading My Drafts:", error);
             body.innerHTML = '<tr><td colspan="8">Unable to load drafts. Check Supabase permissions and the browser console.</td></tr>';
@@ -587,9 +587,29 @@ async function initializeSopPage() {
         if (viewButton) { viewSop(viewButton.dataset.sopId); return; }
         const editButton = event.target.closest(".edit-draft-button");
         if (editButton) { openEditSop(editButton.dataset.sopId); return; }
+        const deleteButton = event.target.closest(".delete-draft-button");
+        if (deleteButton) {
+            if (!confirm("Delete this Draft SOP permanently? This action cannot be undone.")) return;
+            deleteButton.disabled = true;
+            try {
+                const { data, error } = await supabaseClient.rpc("delete_sop_draft", {
+                    p_sop_id: Number(deleteButton.dataset.sopId)
+                });
+                if (error) throw error;
+                alert("Draft deleted successfully.");
+                await loadMyDrafts();
+                await loadSopCatalog();
+            } catch (error) {
+                console.error("Error deleting SOP draft:", error);
+                alert("Could not delete this draft: " + (error.message || "Check the delete_sop_draft RPC and permissions."));
+            } finally {
+                deleteButton.disabled = false;
+            }
+            return;
+        }
         const submitButton = event.target.closest(".draft-submit-button");
         if (!submitButton) return;
-        if (!confirm("Submit " + submitButton.dataset.sopCode + " (" + submitButton.dataset.revisionCode + ") for validation?")) return;
+        if (!confirm("Submit " + submitButton.dataset.sopCode + " (" + submitButton.dataset.revisionCode + ")? This will start the workflow.")) return;
         submitButton.disabled = true;
         try {
             const { data, error } = await supabaseClient.rpc("workflow_start_instance", {
@@ -599,7 +619,7 @@ async function initializeSopPage() {
                 p_metadata: { source: "my_drafts", submitted_from: "My Drafts" }
             });
             if (error) throw error;
-            alert("SOP submitted for validation.");
+            alert("SOP submitted. The workflow has started.");
             await loadMyDrafts();
             await loadSopCatalog();
         } catch (error) {

@@ -81,14 +81,71 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.addEventListener("click", async event => {
         const button = event.target.closest(".workflow-detail-button");
         if (!button) return;
-        const id = button.dataset.instanceId;
-        const { data, error } = await supabaseClient.from("workflow_instances").select("*").eq("id", id).single();
-        if (error) { alert("Unable to load workflow details. See console."); console.error(error); return; }
-        const { data: tasks, error: taskError } = await supabaseClient.from("workflow_tasks").select("*").eq("instance_id", id).order("created_at", {ascending:true});
-        const { data: history, error: historyError } = await supabaseClient.from("workflow_history").select("*").eq("instance_id", id).order("created_at", {ascending:true});
-        if (taskError || historyError) { alert("Unable to load workflow task history. Check table policies."); console.error(taskError || historyError); return; }
+        const instanceId = button.dataset.instanceId;
         const detail = document.querySelector(".sop-modal-body");
-        detail.innerHTML = "<h3>Workflow #" + escapeText(id) + "</h3><p><strong>Status:</strong> " + escapeText(data.status || "") + "</p><h4>Tasks</h4>" + ((tasks || []).map(task => "<p>Task #" + escapeText(task.id) + " · " + escapeText(task.status || "") + " · " + escapeText(dateText(task.created_at)) + "</p>").join("") || "<p>No tasks.</p>") + "<h4>History</h4>" + ((history || []).map(item => "<p>" + escapeText(item.action || item.event_type || item.description || "Workflow event") + " · " + escapeText(dateText(item.created_at)) + "</p>").join("") || "<p>No history available.</p>");
+        detail.innerHTML = "<p>Loading workflow details...</p>";
         document.getElementById("sop-modal").classList.remove("hidden");
+        try {
+            const { data: instance, error: instanceError } = await supabaseClient.from("workflow_instances").select("*").eq("id", instanceId).single();
+            if (instanceError) throw instanceError;
+            const [{ data: tasks, error: taskError }, { data: history, error: historyError }] = await Promise.all([
+                supabaseClient.from("workflow_tasks").select("*").eq("instance_id", instanceId).order("created_at", {ascending:true}),
+                supabaseClient.from("workflow_history").select("*").eq("instance_id", instanceId).order("created_at", {ascending:true})
+            ]);
+            if (taskError) throw taskError;
+            if (historyError) throw historyError;
+            const taskRows = tasks || [];
+            const taskIds = taskRows.map(task => task.id);
+            const assignmentResult = taskIds.length ? await supabaseClient.from("workflow_task_assignees").select("*").in("task_id", taskIds) : {data:[],error:null};
+            if (assignmentResult.error) throw assignmentResult.error;
+            const assignments = assignmentResult.data || [];
+            const userIds = [...new Set(assignments.map(item => item.user_id).filter(Boolean))];
+            const profileResult = userIds.length ? await supabaseClient.from("user_profiles").select("id,full_name").in("id", userIds) : {data:[],error:null};
+            if (profileResult.error) throw profileResult.error;
+            const profiles = new Map((profileResult.data || []).map(profile => [String(profile.id), profile.full_name]));
+            const {data:userData} = await supabaseClient.auth.getUser();
+            const userId = userData?.user?.id;
+            const pendingTask = taskRows.find(task => ["pending","assigned","in_progress"].includes(String(task.status || "").toLowerCase()));
+            const pendingAssignments = pendingTask ? assignments.filter(item => String(item.task_id) === String(pendingTask.id)) : [];
+            const assignedToUser = pendingAssignments.some(item => String(item.user_id) === String(userId));
+            const nodeResult = pendingTask ? await supabaseClient.from("workflow_nodes").select("*").eq("id", pendingTask.node_id).maybeSingle() : {data:null,error:null};
+            if (nodeResult.error) throw nodeResult.error;
+            const nodeText = String(nodeResult.data?.name || nodeResult.data?.node_type || "").toLowerCase();
+            const stage = nodeText.includes("approv") ? "approval" : "validation";
+            const permission = stage === "approval" ? "documents.sop.approve" : "documents.sop.validate";
+            const canAct = Boolean(pendingTask && assignedToUser && hasPermission(permission));
+            const taskHtml = taskRows.map(task => {
+                const names = assignments.filter(item => String(item.task_id) === String(task.id)).map(item => profiles.get(String(item.user_id)) || item.user_id || "Unassigned").join(", ");
+                return "<tr><td>" + escapeText(task.name || task.node_id || ("Task #" + task.id)) + "</td><td>" + escapeText(task.status || "") + "</td><td>" + escapeText(names || "Unassigned") + "</td><td>" + escapeText(dateText(task.created_at)) + "</td></tr>";
+            }).join("");
+            const historyHtml = (history || []).map(item => "<li>" + escapeText(item.action || item.event_type || item.description || "Workflow event") + " · " + escapeText(dateText(item.created_at)) + "</li>").join("");
+            detail.innerHTML = "<h3>Workflow #" + escapeText(instanceId) + "</h3><p><strong>Instance status:</strong> " + escapeText(instance.status || "") + "</p><h4>Tasks</h4><div class='catalog-table'><table><thead><tr><th>Task</th><th>Status</th><th>Assigned To</th><th>Created</th></tr></thead><tbody>" + (taskHtml || "<tr><td colspan='4'>No tasks found.</td></tr>") + "</tbody></table></div><h4>History</h4><ul>" + (historyHtml || "<li>No history available.</li>") + "</ul>" + (pendingTask ? "<div class='sop-revision-section'><label for='workflow-task-comment'>Comments</label><textarea id='workflow-task-comment' rows='3' placeholder='Optional review comments'></textarea></div>" : "") + (canAct ? "<div class='sop-modal-actions'><button type='button' class='danger-button' id='workflow-reject-task' data-task-id='" + escapeText(pendingTask.id) + "'>Reject and return to Draft</button><button type='button' class='primary-button' id='workflow-complete-task' data-task-id='" + escapeText(pendingTask.id) + "' data-stage='" + stage + "'>Complete " + (stage === "approval" ? "Approval" : "Validation") + "</button></div>" : pendingTask ? "<p>You can review this task, but actions require the task to be assigned to your account and the corresponding permission.</p>" : "");
+        } catch (error) {
+            console.error("Unable to load workflow details:", error);
+            detail.innerHTML = "<p>Unable to load workflow details. Check table access policies.</p>";
+        }
+    });
+    document.addEventListener("click", async event => {
+        const completeButton = event.target.closest("#workflow-complete-task");
+        const rejectButton = event.target.closest("#workflow-reject-task");
+        if (!completeButton && !rejectButton) return;
+        const button = completeButton || rejectButton;
+        const taskId = Number(button.dataset.taskId);
+        const comment = document.getElementById("workflow-task-comment")?.value?.trim() || null;
+        const isReject = Boolean(rejectButton);
+        if (isReject && !confirm("Reject this task and return the SOP revision to Draft?")) return;
+        button.disabled = true;
+        try {
+            const rpcName = isReject ? "workflow_reject_task" : "workflow_complete_task";
+            const {error} = await supabaseClient.rpc(rpcName, {p_task_id:taskId,p_comment:comment});
+            if (error) throw error;
+            alert(isReject ? "Task rejected. The SOP revision was returned to Draft." : "Workflow task completed successfully.");
+            document.getElementById("sop-modal").classList.add("hidden");
+            window.location.reload();
+        } catch (error) {
+            console.error("Workflow action failed:", error);
+            alert("The workflow action failed: " + (error.message || "Check permissions and RPC parameters."));
+            button.disabled = false;
+        }
     });
 });

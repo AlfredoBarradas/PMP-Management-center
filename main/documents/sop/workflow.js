@@ -31,21 +31,35 @@ document.addEventListener("DOMContentLoaded", async () => {
         const tasks = taskResult.data || [];
         const nodeMap = new Map((nodeResult.data || []).map(row => [String(row.id), row]));
         const pending = tasks.filter(row => ["pending", "assigned", "in_progress"].includes(String(row.status || "").toLowerCase()));
-        const revIds = [...new Set(active.map(row => row.revision_id).filter(Boolean))];
-        const docIds = [...new Set(active.map(row => row.document_id).filter(Boolean))];
-        const [revs, docs] = await Promise.all([
-            revIds.length ? supabaseClient.from("sop_revisions").select("id,revision_code,status,created_at,created_by").in("id", revIds) : Promise.resolve({data:[],error:null}),
-            docIds.length ? supabaseClient.from("sop_documents").select("id,sop_code,part_number,operation_name,created_by").in("id", docIds) : Promise.resolve({data:[],error:null})
+        const docIds = [...new Set(active.map(row => row.source_document_id ?? row.document_id).filter(value => value !== null && value !== undefined))];
+        const revisionIds = [...new Set(active.map(row => row.source_revision_id ?? row.revision_id).filter(value => value !== null && value !== undefined))];
+        const [docResult, revisionResult, assigneeResult] = await Promise.all([
+            docIds.length ? supabaseClient.from("sop_documents").select("id,sop_code,part_number,operation_name,created_by").in("id", docIds) : Promise.resolve({data:[],error:null}),
+            revisionIds.length ? supabaseClient.from("sop_revisions").select("id,sop_id,revision_code,status,created_at,created_by").in("id", revisionIds) : Promise.resolve({data:[],error:null}),
+            pending.length ? supabaseClient.from("workflow_task_assignees").select("*").in("task_id", pending.map(row => row.id)) : Promise.resolve({data:[],error:null})
         ]);
-        if (revs.error) throw revs.error;
-        if (docs.error) throw docs.error;
-        const revMap = new Map((revs.data || []).map(row => [String(row.id), row]));
-        const docMap = new Map((docs.data || []).map(row => [String(row.id), row]));
+        if (docResult.error) throw docResult.error;
+        if (revisionResult.error) throw revisionResult.error;
+        if (assigneeResult.error) throw assigneeResult.error;
+        const docMap = new Map((docResult.data || []).map(row => [String(row.id), row]));
+        const revisionMap = new Map((revisionResult.data || []).map(row => [String(row.id), row]));
+        const assignees = assigneeResult.data || [];
         const rows = active.map(instance => {
             const task = pending.find(row => String(row.instance_id) === String(instance.id));
             const node = task ? nodeMap.get(String(task.node_id)) : nodeMap.get(String(instance.current_node_id));
-            const stage = String(node?.name || node?.node_type || instance.current_stage || "Workflow").replaceAll("_", " ");
-            return {instance, task, stage, revision:revMap.get(String(instance.revision_id)), doc:docMap.get(String(instance.document_id))};
+            const documentId = instance.source_document_id ?? instance.document_id;
+            const revisionId = instance.source_revision_id ?? instance.revision_id;
+            const revision = revisionMap.get(String(revisionId));
+            const doc = docMap.get(String(documentId));
+            const rawStage = [node?.name, node?.label, node?.code, node?.node_type, instance.current_stage, revision?.status].find(value => value && /validat|approv|draft|release|reject|start|end/i.test(String(value)));
+            let stage = String(rawStage || node?.name || node?.label || node?.code || revision?.status || "Workflow").replaceAll("_", " ").replaceAll("-", " ");
+            if (/validat/i.test(stage)) stage = "Validation";
+            else if (/approv/i.test(stage)) stage = "Approval";
+            else if (/draft/i.test(stage)) stage = "Draft";
+            else if (/release/i.test(stage)) stage = "Released";
+            const taskAssignees = task ? assignees.filter(item => String(item.task_id) === String(task.id)) : [];
+            const assigneeText = taskAssignees.map(item => item.full_name || item.display_name || item.email || item.user_id || item.assignee_id).filter(Boolean).join(", ");
+            return {instance, task, stage, revision, doc, assigneeText: assigneeText || (task ? "Assigned task" : "No pending task")};
         });
         const validation = rows.filter(row => row.task && row.stage.toLowerCase().includes("validat"));
         const approval = rows.filter(row => row.task && row.stage.toLowerCase().includes("approv"));
@@ -53,11 +67,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         document.getElementById("pending-approval-count").textContent = String(approval.length);
         const renderQueue = (body, list, stage) => {
             if (!list.length) { message(body, 7, "No pending " + stage + " tasks."); return; }
-            body.innerHTML = list.map(row => '<tr><td>' + escapeText(row.doc?.sop_code || "SOP") + '</td><td>' + escapeText(row.doc?.part_number || "") + '</td><td>' + escapeText(row.doc?.created_by || row.revision?.created_by || "") + '</td><td>Workflow task</td><td>' + escapeText(dateText(row.task?.created_at || row.instance.created_at)) + '</td><td>' + escapeText(row.task?.status || "Pending") + '</td><td><button type="button" class="secondary-button workflow-detail-button" data-instance-id="' + escapeText(row.instance.id) + '">Review</button></td></tr>').join("");
+            body.innerHTML = list.map(row => '<tr><td>' + escapeText(row.doc?.sop_code || "SOP") + ' (' + escapeText(row.revision?.revision_code || "") + ')</td><td>' + escapeText(row.doc?.part_number || "") + '</td><td>' + escapeText(row.doc?.created_by || row.revision?.created_by || "") + '</td><td>' + escapeText(row.assigneeText) + '</td><td>' + escapeText(dateText(row.task?.created_at || row.instance.created_at)) + '</td><td>' + escapeText(row.task?.status || "Pending") + '</td><td><button type="button" class="secondary-button workflow-detail-button" data-instance-id="' + escapeText(row.instance.id) + '">Review</button></td></tr>').join("");
         };
         renderQueue(validationBody, validation, "validation");
         renderQueue(approvalBody, approval, "approval");
-        workflowBody.innerHTML = rows.map(row => '<tr><td>' + escapeText(row.doc?.sop_code || "SOP") + '</td><td>' + escapeText(row.stage) + '</td><td>' + escapeText(row.task ? "Task pending" : "No pending task") + '</td><td>' + escapeText(dateText(row.task?.created_at || row.instance.created_at)) + '</td><td>' + escapeText(row.task?.status || row.instance.status || "") + '</td><td><button type="button" class="primary-button workflow-detail-button" data-instance-id="' + escapeText(row.instance.id) + '">View Flow</button></td></tr>').join("");
+        workflowBody.innerHTML = rows.map(row => '<tr><td>' + escapeText(row.doc?.sop_code || "Unknown SOP") + ' (' + escapeText(row.revision?.revision_code || "") + ')</td><td>' + escapeText(row.stage) + '</td><td>' + escapeText(row.assigneeText) + '</td><td>' + escapeText(dateText(row.task?.created_at || row.instance.created_at)) + '</td><td>' + escapeText(row.task?.status || row.instance.status || "") + '</td><td><button type="button" class="primary-button workflow-detail-button" data-instance-id="' + escapeText(row.instance.id) + '">View Flow</button></td></tr>').join("");
     } catch (error) {
         console.error("Unable to load SOP workflow data:", error);
         message(validationBody, 7, "Unable to load tasks. Check Supabase policies and the browser console.");

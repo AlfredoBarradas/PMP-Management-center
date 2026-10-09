@@ -63,6 +63,12 @@ async function initializeSopPage() {
         if (sectionId === "sop-control") refreshWorkflowCounts();
         window.scrollTo({ top: 0, behavior: "smooth" });
     }
+    window.addEventListener("focus", () => {
+        if (!document.getElementById("sop-control")?.classList.contains("hidden")) refreshWorkflowCounts();
+    });
+    document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible" && !document.getElementById("sop-control")?.classList.contains("hidden")) refreshWorkflowCounts();
+    });
     function setFormEditable(editable) {
         document.getElementById("sop-workshop").disabled = !editable;
         document.getElementById("sop-process").disabled = !editable;

@@ -92,13 +92,13 @@
 
     function setActiveSidebarItem() {
         const currentPath = window.location.pathname.replace(/\/+$/, "") || "/";
-        const sidebarLinks = document.querySelectorAll(".sidebar-menu a");
+        const sidebarLinks = document.querySelectorAll(".sidebar-menu a, .sidebar-footer a");
 
         sidebarLinks.forEach(link => {
             const linkUrl = new URL(link.href, window.location.origin);
             const linkPath = linkUrl.pathname.replace(/\/+$/, "") || "/";
 
-            if (linkPath === currentPath) {
+            if (linkPath === currentPath || (linkPath !== "/" && currentPath.startsWith(`${linkPath}/`))) {
                 link.classList.add("active");
             }
         });

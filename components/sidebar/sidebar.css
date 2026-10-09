@@ -51,7 +51,8 @@
 }
 
 
-.sidebar-menu a.active {
+.sidebar-menu a.active,
+.sidebar-footer a.active {
     background-color: #009A9D;
     color: #ffffff;
 }

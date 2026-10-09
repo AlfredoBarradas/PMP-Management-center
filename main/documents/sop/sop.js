@@ -462,12 +462,12 @@ async function initializeSopPage() {
     async function loadMyDrafts() {
         const body = document.getElementById("sop-drafts-body");
         if (!body) return;
-        body.innerHTML = '<tr><td colspan="6">Loading your drafts...</td></tr>';
+        body.innerHTML = '<tr><td colspan="8">Loading your drafts...</td></tr>';
         try {
             const { data: authData, error: authError } = await supabaseClient.auth.getUser();
             if (authError) throw authError;
             const userId = authData?.user?.id;
-            if (!userId) { body.innerHTML = '<tr><td colspan="6">Please sign in to view your drafts.</td></tr>'; return; }
+            if (!userId) { body.innerHTML = '<tr><td colspan="8">Please sign in to view your drafts.</td></tr>'; return; }
             const { data: documents, error: documentError } = await supabaseClient
                 .from("sop_documents")
                 .select("id,sop_code,part_number,operation_name,created_at,created_by,models(name),part_names(name),sop_revisions(id,revision_code,revision_number,status,created_at,created_by,description)")
@@ -478,11 +478,11 @@ async function initializeSopPage() {
                 .filter(revision => String(revision.status || "").toLowerCase() === "draft" && String(revision.created_by || doc.created_by) === String(userId))
                 .map(revision => ({doc, revision})))
                 .sort((a,b) => new Date(b.revision.created_at || b.doc.created_at) - new Date(a.revision.created_at || a.doc.created_at));
-            if (!drafts.length) { body.innerHTML = '<tr><td colspan="6">You have no draft SOPs.</td></tr>'; return; }
-            body.innerHTML = drafts.map(item => '<tr><td>' + escapeHtml(item.doc.sop_code || "Unassigned") + '</td><td>' + escapeHtml(item.doc.models?.name || "") + '</td><td>' + escapeHtml(item.doc.part_names?.name || "") + '</td><td>' + escapeHtml(item.revision.revision_code || "") + '</td><td>' + escapeHtml(formatDate(item.revision.created_at || item.doc.created_at)) + '</td><td class="table-actions"><button type="button" class="secondary-button draft-view-button" data-sop-id="' + escapeHtml(item.doc.id) + '">View</button><button type="button" class="primary-button draft-submit-button" data-sop-id="' + escapeHtml(item.doc.id) + '" data-revision-id="' + escapeHtml(item.revision.id) + '" data-sop-code="' + escapeHtml(item.doc.sop_code) + '" data-revision-code="' + escapeHtml(item.revision.revision_code) + '">Submit for Validation</button></td></tr>').join("");
+            if (!drafts.length) { body.innerHTML = '<tr><td colspan="8">You have no draft SOPs.</td></tr>'; return; }
+            body.innerHTML = drafts.map(item => '<tr><td>' + escapeHtml(item.doc.sop_code || "Unassigned") + '</td><td>' + escapeHtml(item.doc.models?.name || "") + '</td><td>' + escapeHtml(item.doc.part_names?.name || "") + '</td><td>' + escapeHtml(item.doc.part_number || "") + '</td><td>' + escapeHtml(item.doc.operation_name || "") + '</td><td>' + escapeHtml(item.revision.revision_code || "") + '</td><td>' + escapeHtml(formatDate(item.revision.created_at || item.doc.created_at)) + '</td><td class="table-actions"><button type="button" class="secondary-button draft-view-button" data-sop-id="' + escapeHtml(item.doc.id) + '">View</button><button type="button" class="secondary-button edit-draft-button" data-sop-id="' + escapeHtml(item.doc.id) + '">Edit</button><button type="button" class="primary-button draft-submit-button" data-sop-id="' + escapeHtml(item.doc.id) + '" data-revision-id="' + escapeHtml(item.revision.id) + '" data-sop-code="' + escapeHtml(item.doc.sop_code || "Unassigned") + '" data-revision-code="' + escapeHtml(item.revision.revision_code) + '">Submit for Validation</button></td></tr>').join("");
         } catch (error) {
             console.error("Error loading My Drafts:", error);
-            body.innerHTML = '<tr><td colspan="6">Unable to load drafts. Check Supabase permissions and the browser console.</td></tr>';
+            body.innerHTML = '<tr><td colspan="8">Unable to load drafts. Check Supabase permissions and the browser console.</td></tr>';
         }
     }
     function escapeHtml(value) {
@@ -491,6 +491,8 @@ async function initializeSopPage() {
     document.addEventListener("click", async event => {
         const viewButton = event.target.closest(".draft-view-button");
         if (viewButton) { viewSop(viewButton.dataset.sopId); return; }
+        const editButton = event.target.closest(".edit-draft-button");
+        if (editButton) { openEditSop(editButton.dataset.sopId); return; }
         const submitButton = event.target.closest(".draft-submit-button");
         if (!submitButton) return;
         if (!confirm("Submit " + submitButton.dataset.sopCode + " (" + submitButton.dataset.revisionCode + ") for validation?")) return;

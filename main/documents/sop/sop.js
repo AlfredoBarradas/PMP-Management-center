@@ -123,22 +123,20 @@ async function initializeSopPage() {
             openRevisionSop(sop);
         });
     });
-    document.getElementById("save-sop-draft").addEventListener("click", () => {
-        const mode = sopMode.value;
-        if (mode === "revision") {
-            alert("Revision saved as draft.");
+    document.getElementById("save-sop-draft").addEventListener("click", async () => {
+        if (sopMode.value !== "create") {
+            alert("Saving revisions and editing existing drafts are not connected yet.");
             return;
         }
-        alert("SOP saved as draft.");
+        await saveNewSop({ submitForValidation: false });
     });
-    sopForm.addEventListener("submit", event => {
+    sopForm.addEventListener("submit", async event => {
         event.preventDefault();
-        const mode = sopMode.value;
-        if (mode === "revision") {
-            alert("Revision submitted for validation.");
+        if (sopMode.value !== "create") {
+            alert("Submitting revisions and edited drafts is not connected yet.");
             return;
         }
-        alert("SOP submitted for validation.");
+        await saveNewSop({ submitForValidation: true });
     });
     document.querySelectorAll(".danger-button").forEach(button => {
         button.addEventListener("click", () => {
@@ -316,7 +314,7 @@ async function initializeSopPage() {
     }
 
 
-    async function saveNewSop() {
+    async function saveNewSop({ submitForValidation = false } = {}) {
         const workshopId = document.getElementById("sop-workshop").value;
         const processAreaId = document.getElementById("sop-process").value;
         const modelId = document.getElementById("sop-model").value;
@@ -332,29 +330,76 @@ async function initializeSopPage() {
             alert("Please complete Part Number, Operation Name, and Description.");
             return;
         }
-        const button = document.getElementById("save-sop-draft");
-        button.disabled = true;
-        button.textContent = "Saving...";
-        const { data, error } = await supabaseClient.rpc("create_new_sop", {
-            p_workshop_id: Number(workshopId),
-            p_process_area_id: Number(processAreaId),
-            p_model_id: Number(modelId),
-            p_part_name_id: Number(partNameId),
-            p_part_number: partNumber,
-            p_operation_name: operationName,
-            p_description: description
-        });
-        button.disabled = false;
-        button.textContent = "Save Draft";
-        if (error) {
+        const saveButton = document.getElementById("save-sop-draft");
+        const submitButton = sopForm.querySelector('button[type="submit"]');
+        const originalSaveText = saveButton.textContent;
+        const originalSubmitText = submitButton.textContent;
+        saveButton.disabled = true;
+        submitButton.disabled = true;
+        saveButton.textContent = "Saving...";
+        submitButton.textContent = submitForValidation ? "Submitting..." : originalSubmitText;
+        try {
+            const { data, error } = await supabaseClient.rpc("create_new_sop", {
+                p_workshop_id: Number(workshopId),
+                p_process_area_id: Number(processAreaId),
+                p_model_id: Number(modelId),
+                p_part_name_id: Number(partNameId),
+                p_part_number: partNumber,
+                p_operation_name: operationName,
+                p_description: description
+            });
+            if (error) throw error;
+            const createdSop = Array.isArray(data) ? data[0] : data;
+            if (!createdSop?.sop_id || !createdSop?.sop_code || !createdSop?.revision_code) {
+                throw new Error("SOP creation returned an unexpected response.");
+            }
+            if (submitForValidation) {
+                const { data: revision, error: revisionError } = await supabaseClient
+                    .from("sop_revisions")
+                    .select("id")
+                    .eq("sop_id", createdSop.sop_id)
+                    .eq("revision_code", createdSop.revision_code)
+                    .single();
+                if (revisionError) {
+                    console.error("Error retrieving created SOP revision:", revisionError);
+                    alert("SOP " + createdSop.sop_code + " was created as Draft, but its revision could not be retrieved. Submission did not start. " + revisionError.message);
+                    await loadSopCatalog();
+                    return;
+                }
+                const { data: workflow, error: workflowError } = await supabaseClient.rpc("workflow_start_instance", {
+                    p_definition_id: 1,
+                    p_source_document_id: Number(createdSop.sop_id),
+                    p_source_revision_id: Number(revision.id),
+                    p_metadata: {
+                        source: "sop_form",
+                        submitted_from: "Submit for Validation"
+                    }
+                });
+                if (workflowError) {
+                    console.error("Error starting SOP workflow:", workflowError);
+                    alert("SOP " + createdSop.sop_code + " was created as Draft, but submission for validation failed. No workflow was started. " + workflowError.message);
+                    await loadSopCatalog();
+                    return;
+                }
+                console.log("SOP workflow started:", workflow);
+                alert("SOP " + createdSop.sop_code + " (" + createdSop.revision_code + ") was created and submitted for validation.");
+            } else {
+                alert("SOP " + createdSop.sop_code + " created successfully as " + createdSop.revision_code + " Draft.");
+            }
+            sopForm.reset();
+            setCreateMode();
+            showSection("sop-control");
+            await loadSopCatalog();
+        } catch (error) {
             console.error("Error creating SOP:", error);
-            alert("Error creating SOP. Check the console for details.");
-            return;
+            alert("Error creating SOP. " + (error?.message || "Check the browser console for details."));
+        } finally {
+            saveButton.disabled = false;
+            submitButton.disabled = false;
+            saveButton.textContent = originalSaveText;
+            submitButton.textContent = originalSubmitText;
         }
-        console.log("SOP created:", data);
-        alert(`SOP ${data[0].sop_code} created successfully as ${data[0].revision_code}.`);
     }
-
 
     loadWorkshops();
     document.getElementById("sop-workshop").addEventListener("change", event => {

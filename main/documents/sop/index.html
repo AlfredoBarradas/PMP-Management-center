@@ -151,54 +151,55 @@
                             </div>
                         </div>
                     </div>
-                    <form id="sop-form">
+                    <form id="sop-form" novalidate>
+                        <div id="sop-validation-alert" class="sop-validation-alert hidden" role="alert" aria-live="assertive"></div>
                         <input type="hidden" id="sop-mode" value="create">
                         <input type="hidden" id="sop-id" value="">
                         <div class="form-section">
                             <h3>Basic Information</h3>
                             <div class="form-grid">
                                 <div class="form-group">
-                                    <label for="sop-workshop">Workshop area</label>
+                                    <label for="sop-workshop">Workshop area <span class="required-marker" aria-hidden="true">*</span></label>
                                     <select id="sop-workshop" name="sop-workshop">
                                         <option value="">--None--</option>
                                     </select>
                                 </div>
 
                                 <div class="form-group">
-                                    <label for="sop-process">Process area</label>
+                                    <label for="sop-process">Process area <span class="required-marker" aria-hidden="true">*</span></label>
                                     <select id="sop-process" name="sop-process">
                                         <option value="">--None--</option>
                                     </select>
                                 </div>
 
                                 <div class="form-group">
-                                    <label for="sop-model-series">Model series</label>
+                                    <label for="sop-model-series">Model series <span class="required-marker" aria-hidden="true">*</span></label>
                                     <select id="sop-model-series" name="sop-model-series">
                                         <option value="">--None--</option>
                                     </select>
                                 </div>
 
                                 <div class="form-group">
-                                    <label for="sop-model">Model size</label>
+                                    <label for="sop-model">Model size <span class="required-marker" aria-hidden="true">*</span></label>
                                     <select id="sop-model" name="sop-model">
                                         <option value="">--None--</option>
                                     </select>
                                 </div>
 
                                 <div class="form-group">
-                                    <label for="sop-part-name">Part Name</label>
+                                    <label for="sop-part-name">Part Name <span class="required-marker" aria-hidden="true">*</span></label>
                                     <select id="sop-part-name" name="sop-part-name">
                                         <option value="">--None--</option>
                                     </select>
                                 </div>
 
                                 <div class="form-group">
-                                    <label for="sop-part-number">Part Number</label>
+                                    <label for="sop-part-number">Part Number <span class="required-marker" aria-hidden="true">*</span></label>
                                     <input type="text" id="sop-part-number" name="sop-part-number" placeholder="T450612">
                                 </div>
 
                                 <div class="form-group">
-                                    <label for="sop-operation">Operation Name</label>
+                                    <label for="sop-operation">Operation Name <span class="required-marker" aria-hidden="true">*</span></label>
                                     <input type="text" id="sop-operation" name="sop-operation" placeholder="Colocacion de...">
                                 </div>
                             </div>
@@ -207,7 +208,7 @@
                         <div class="form-section">
                             <h3 id="sop-description-title">Description</h3>
                             <div class="form-group">
-                                <label for="sop-description" id="sop-description-label">Description</label>
+                                <label for="sop-description" id="sop-description-label">Description <span class="required-marker" aria-hidden="true">*</span></label>
                                 <textarea id="sop-description" name="sop-description" rows="5" placeholder="Describe the purpose and scope of this SOP."></textarea>
                             </div>
                         </div>

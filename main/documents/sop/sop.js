@@ -418,6 +418,60 @@ async function initializeSopPage() {
 
 
 
+    async function loadMyDrafts() {
+        const body = document.getElementById("sop-drafts-body");
+        if (!body) return;
+        body.innerHTML = '<tr><td colspan="6">Loading your drafts...</td></tr>';
+        try {
+            const { data: authData, error: authError } = await supabaseClient.auth.getUser();
+            if (authError) throw authError;
+            const userId = authData?.user?.id;
+            if (!userId) { body.innerHTML = '<tr><td colspan="6">Please sign in to view your drafts.</td></tr>'; return; }
+            const { data: documents, error: documentError } = await supabaseClient
+                .from("sop_documents")
+                .select("id,sop_code,part_number,operation_name,created_at,created_by,models(name),part_names(name),sop_revisions(id,revision_code,revision_number,status,created_at,created_by,description)")
+                .eq("created_by", userId)
+                .order("created_at", { ascending: false });
+            if (documentError) throw documentError;
+            const drafts = (documents || []).flatMap(doc => (doc.sop_revisions || [])
+                .filter(revision => String(revision.status || "").toLowerCase() === "draft" && String(revision.created_by || doc.created_by) === String(userId))
+                .map(revision => ({doc, revision})))
+                .sort((a,b) => new Date(b.revision.created_at || b.doc.created_at) - new Date(a.revision.created_at || a.doc.created_at));
+            if (!drafts.length) { body.innerHTML = '<tr><td colspan="6">You have no draft SOPs.</td></tr>'; return; }
+            body.innerHTML = drafts.map(item => '<tr><td>' + escapeHtml(item.doc.sop_code) + '</td><td>' + escapeHtml(item.doc.models?.name || "") + '</td><td>' + escapeHtml(item.doc.part_names?.name || "") + '</td><td>' + escapeHtml(item.revision.revision_code || "") + '</td><td>' + escapeHtml(formatDate(item.revision.created_at || item.doc.created_at)) + '</td><td class="table-actions"><button type="button" class="secondary-button draft-view-button" data-sop-id="' + escapeHtml(item.doc.id) + '">View</button><button type="button" class="primary-button draft-submit-button" data-sop-id="' + escapeHtml(item.doc.id) + '" data-revision-id="' + escapeHtml(item.revision.id) + '" data-sop-code="' + escapeHtml(item.doc.sop_code) + '" data-revision-code="' + escapeHtml(item.revision.revision_code) + '">Submit for Validation</button></td></tr>').join("");
+        } catch (error) {
+            console.error("Error loading My Drafts:", error);
+            body.innerHTML = '<tr><td colspan="6">Unable to load drafts. Check Supabase permissions and the browser console.</td></tr>';
+        }
+    }
+    function escapeHtml(value) {
+        return String(value ?? "").replace(/[&<>"']/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
+    }
+    document.addEventListener("click", async event => {
+        const viewButton = event.target.closest(".draft-view-button");
+        if (viewButton) { viewSop(viewButton.dataset.sopId); return; }
+        const submitButton = event.target.closest(".draft-submit-button");
+        if (!submitButton) return;
+        if (!confirm("Submit " + submitButton.dataset.sopCode + " (" + submitButton.dataset.revisionCode + ") for validation?")) return;
+        submitButton.disabled = true;
+        try {
+            const { data, error } = await supabaseClient.rpc("workflow_start_instance", {
+                p_definition_id: 1,
+                p_source_document_id: Number(submitButton.dataset.sopId),
+                p_source_revision_id: Number(submitButton.dataset.revisionId),
+                p_metadata: { source: "my_drafts", submitted_from: "My Drafts" }
+            });
+            if (error) throw error;
+            alert("SOP submitted for validation.");
+            await loadMyDrafts();
+            await loadSopCatalog();
+        } catch (error) {
+            console.error("Error submitting draft for validation:", error);
+            alert("Could not submit this draft: " + (error.message || "Check workflow permissions and configuration."));
+        } finally {
+            submitButton.disabled = false;
+        }
+    });
     async function loadSopCatalog() {
         const catalogBody = document.getElementById("sop-catalog-body");
         catalogBody.innerHTML = '<tr><td colspan="11">Loading...</td></tr>';

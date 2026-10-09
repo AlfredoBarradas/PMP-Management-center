@@ -386,6 +386,8 @@ async function initializeSopPage() {
         if (missing.length) {
             alertBox.innerHTML = "<h3>Please complete all required fields.</h3><p>The following fields are missing:</p><ul>" + missing.map(label => "<li>" + escapeHtml(label) + "</li>").join("") + "</ul>";
             alertBox.classList.remove("hidden");
+            const actions = sopForm.querySelector(".form-actions");
+            actions?.insertAdjacentElement("beforebegin", alertBox);
             const firstMissing = fields.find(field => missing.includes(field.label));
             document.getElementById(firstMissing.id).focus();
             alertBox.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -393,6 +395,8 @@ async function initializeSopPage() {
         }
         alertBox.classList.add("hidden");
         alertBox.innerHTML = "";
+        const originalPosition = sopForm.querySelector(".form-section");
+        if (originalPosition && alertBox.parentElement !== sopForm) originalPosition.insertAdjacentElement("beforebegin", alertBox);
         return true;
     }
     sopForm.addEventListener("input", event => {

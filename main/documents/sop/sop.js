@@ -45,7 +45,7 @@ async function initializeSopPage() {
         editorTitle.textContent = "Create New SOP";
         editorDescription.textContent = "Create a new standard operating process.";
         revisionInfo.classList.add("hidden");
-        descriptionTitle.textContent = "Description";
+        descriptionTitle.innerHTML = 'Description <span class="required-marker" aria-hidden="true">*</span>';
         descriptionLabel.textContent = "Description";
         descriptionInput.placeholder = "Describe the purpose and scope of this SOP.";
         fileInput.value = "";

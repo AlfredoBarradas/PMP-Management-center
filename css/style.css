@@ -128,3 +128,19 @@ body {
 .document-status strong {
     font-size: 24px;
 }
+
+
+body.auth-pending .app {
+    visibility: hidden;
+}
+body.auth-pending::before {
+    content: "Verifying access...";
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    display: grid;
+    place-items: center;
+    background: #f4f6f7;
+    color: #263238;
+    font-family: Arial, sans-serif;
+}

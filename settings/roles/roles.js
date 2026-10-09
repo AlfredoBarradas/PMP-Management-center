@@ -3,23 +3,23 @@
     let permissions = [];
     let editingRoleId = null;
 
+
     async function initializePage() {
         const authData = await initializeSupabaseAuth();
-
         if (!authData?.user) {
-            window.location.href = "/auth/";
+            window.location.replace("/auth/");
             return;
         }
-
         if (!isAdmin()) {
-            window.location.href = "/";
+            window.location.replace("/");
             return;
         }
-
         await loadRoles();
         await loadPermissions();
         initializeEvents();
+        document.body.classList.remove("auth-pending");
     }
+
 
     async function loadRoles() {
         const tableBody = document.getElementById("roles-table-body");

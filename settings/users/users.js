@@ -1,19 +1,19 @@
-
 (async () => {
     let users = [];
     let editingUserId = null;
     async function initializePage() {
         const authData = await initializeSupabaseAuth();
         if (!authData?.user) {
-            window.location.href = "/auth/";
+            window.location.replace("/auth/");
             return;
         }
         if (!isAdmin()) {
-            window.location.href = "/";
+            window.location.replace("/");
             return;
         }
         await Promise.all([loadUsers(), loadRoles()]);
         initializeEvents();
+        document.body.classList.remove("auth-pending");
     }
     async function loadUsers() {
         const tableBody = document.getElementById("users-table-body");

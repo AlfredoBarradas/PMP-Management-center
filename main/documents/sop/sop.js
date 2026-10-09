@@ -23,10 +23,44 @@ async function initializeSopPage() {
     const descriptionLabel = document.getElementById("sop-description-label");
     const descriptionInput = document.getElementById("sop-description");
     const fileInput = document.getElementById("sop-file");
+    async function refreshWorkflowCounts() {
+        try {
+            const { data: instances, error: instanceError } = await supabaseClient.from("workflow_instances").select("id,status").in("status", ["active", "in_progress", "pending"]);
+            if (instanceError) throw instanceError;
+            const active = instances || [];
+            if (!active.length) {
+                document.getElementById("pending-validation-count").textContent = "0";
+                document.getElementById("pending-approval-count").textContent = "0";
+                return;
+            }
+            const ids = active.map(item => item.id);
+            const [taskResult, nodeResult] = await Promise.all([
+                supabaseClient.from("workflow_tasks").select("instance_id,node_id,status").in("instance_id", ids),
+                supabaseClient.from("workflow_nodes").select("id,name,label,code,node_type")
+            ]);
+            if (taskResult.error) throw taskResult.error;
+            if (nodeResult.error) throw nodeResult.error;
+            const nodeMap = new Map((nodeResult.data || []).map(node => [String(node.id), node]));
+            const pending = (taskResult.data || []).filter(task => ["pending","assigned","in_progress"].includes(String(task.status || "").toLowerCase()));
+            let validationCount = 0;
+            let approvalCount = 0;
+            pending.forEach(task => {
+                const node = nodeMap.get(String(task.node_id));
+                const stage = [node?.name,node?.label,node?.code,node?.node_type].filter(Boolean).join(" ").toLowerCase();
+                if (stage.includes("validat")) validationCount++;
+                else if (stage.includes("approv")) approvalCount++;
+            });
+            document.getElementById("pending-validation-count").textContent = String(validationCount);
+            document.getElementById("pending-approval-count").textContent = String(approvalCount);
+        } catch (error) {
+            console.error("Unable to refresh SOP workflow counters:", error);
+        }
+    }
     function showSection(sectionId) {
         sections.forEach(section => section.classList.add("hidden"));
         const targetSection = document.getElementById(sectionId);
         if (targetSection) targetSection.classList.remove("hidden");
+        if (sectionId === "sop-control") refreshWorkflowCounts();
         window.scrollTo({ top: 0, behavior: "smooth" });
     }
     function setFormEditable(editable) {

@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const validationBody = document.getElementById("sop-validation-body");
     const approvalBody = document.getElementById("sop-approval-body");
     const workflowBody = document.getElementById("sop-workflow-body");
-    if (!validationBody || !approvalBody || !workflowBody || !window.supabaseClient) return;
+    if (!validationBody || !approvalBody || !workflowBody) { console.warn("Workflow UI elements are missing.", {validationBody:!!validationBody, approvalBody:!!approvalBody, workflowBody:!!workflowBody}); return; }
     const escapeText = value => String(value ?? "").replace(/[&<>"']/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
     const dateText = value => value ? new Date(value).toLocaleDateString() : "";
     const message = (body, count, text) => { body.innerHTML = '<tr><td colspan="' + count + '">' + escapeText(text) + '</td></tr>'; };

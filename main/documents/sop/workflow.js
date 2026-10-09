@@ -44,6 +44,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         const docMap = new Map((docResult.data || []).map(row => [String(row.id), row]));
         const revisionMap = new Map((revisionResult.data || []).map(row => [String(row.id), row]));
         const assignees = assigneeResult.data || [];
+        const assigneeUserIds = [...new Set(assignees.map(item => item.user_id).filter(Boolean))];
+        const profilesResult = assigneeUserIds.length ? await supabaseClient.from("user_profiles").select("id,full_name").in("id", assigneeUserIds) : {data:[],error:null};
+        if (profilesResult.error) throw profilesResult.error;
+        const profileNames = new Map((profilesResult.data || []).map(profile => [String(profile.id), profile.full_name]));
         const rows = active.map(instance => {
             const task = pending.find(row => String(row.instance_id) === String(instance.id));
             const node = task ? nodeMap.get(String(task.node_id)) : nodeMap.get(String(instance.current_node_id));
@@ -58,7 +62,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             else if (/draft/i.test(stage)) stage = "Draft";
             else if (/release/i.test(stage)) stage = "Released";
             const taskAssignees = task ? assignees.filter(item => String(item.task_id) === String(task.id)) : [];
-            const assigneeText = taskAssignees.map(item => item.full_name || item.display_name || item.email || item.user_id || item.assignee_id).filter(Boolean).join(", ");
+            const assigneeText = taskAssignees.map(item => item.full_name || item.display_name || item.email || profileNames.get(String(item.user_id)) || item.user_id || item.assignee_id).filter(Boolean).join(", ");
             return {instance, task, stage, revision, doc, assigneeText: assigneeText || (task ? "Assigned task" : "No pending task")};
         });
         const validation = rows.filter(row => row.task && row.stage.toLowerCase().includes("validat"));

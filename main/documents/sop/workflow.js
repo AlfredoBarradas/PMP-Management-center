@@ -137,7 +137,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         button.disabled = true;
         try {
             const rpcName = isReject ? "workflow_reject_task" : "workflow_complete_task";
-            const {error} = await supabaseClient.rpc(rpcName, {p_task_id:taskId,p_comment:comment});
+            const rpcArgs = isReject ? { p_task_id: taskId, p_reason: comment || "Rejected during review" } : { p_task_id: taskId, p_transition_key: null, p_result: { comment: comment || "" } };
+            const { error } = await supabaseClient.rpc(rpcName, rpcArgs);
             if (error) throw error;
             alert(isReject ? "Task rejected. The SOP revision was returned to Draft." : "Workflow task completed successfully.");
             document.getElementById("sop-modal").classList.add("hidden");

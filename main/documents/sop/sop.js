@@ -350,9 +350,11 @@ async function initializeSopPage() {
             });
             if (error) throw error;
             const createdSop = Array.isArray(data) ? data[0] : data;
-            if (!createdSop?.sop_id || !createdSop?.sop_code || !createdSop?.revision_code) {
-                throw new Error("SOP creation returned an unexpected response.");
+            if (!createdSop?.sop_id || !createdSop?.revision_code) {
+                console.error("Unexpected create_new_sop response:", data);
+                throw new Error("SOP creation returned an unexpected response. Check the browser console for the RPC response.");
             }
+            const sopDisplayCode = createdSop.sop_code || "Unassigned";
             if (submitForValidation) {
                 const { data: revision, error: revisionError } = await supabaseClient
                     .from("sop_revisions")
@@ -362,7 +364,7 @@ async function initializeSopPage() {
                     .single();
                 if (revisionError) {
                     console.error("Error retrieving created SOP revision:", revisionError);
-                    alert("SOP " + createdSop.sop_code + " was created as Draft, but its revision could not be retrieved. Submission did not start. " + revisionError.message);
+                    alert("SOP " + sopDisplayCode + " was created as Draft, but its revision could not be retrieved. Submission did not start. " + revisionError.message);
                     await loadSopCatalog();
                     return;
                 }
@@ -377,14 +379,14 @@ async function initializeSopPage() {
                 });
                 if (workflowError) {
                     console.error("Error starting SOP workflow:", workflowError);
-                    alert("SOP " + createdSop.sop_code + " was created as Draft, but submission for validation failed. No workflow was started. " + workflowError.message);
+                    alert("SOP " + sopDisplayCode + " was created as Draft, but submission for validation failed. No workflow was started. " + workflowError.message);
                     await loadSopCatalog();
                     return;
                 }
                 console.log("SOP workflow started:", workflow);
-                alert("SOP " + createdSop.sop_code + " (" + createdSop.revision_code + ") was created and submitted for validation.");
+                alert("SOP " + sopDisplayCode + " (" + createdSop.revision_code + ") was created and submitted for validation.");
             } else {
-                alert("SOP " + createdSop.sop_code + " created successfully as " + createdSop.revision_code + " Draft.");
+                alert("SOP draft saved successfully as " + createdSop.revision_code + ". Official SOP code will be assigned upon release.");
             }
             sopForm.reset();
             setCreateMode();
@@ -438,7 +440,7 @@ async function initializeSopPage() {
                 .map(revision => ({doc, revision})))
                 .sort((a,b) => new Date(b.revision.created_at || b.doc.created_at) - new Date(a.revision.created_at || a.doc.created_at));
             if (!drafts.length) { body.innerHTML = '<tr><td colspan="6">You have no draft SOPs.</td></tr>'; return; }
-            body.innerHTML = drafts.map(item => '<tr><td>' + escapeHtml(item.doc.sop_code) + '</td><td>' + escapeHtml(item.doc.models?.name || "") + '</td><td>' + escapeHtml(item.doc.part_names?.name || "") + '</td><td>' + escapeHtml(item.revision.revision_code || "") + '</td><td>' + escapeHtml(formatDate(item.revision.created_at || item.doc.created_at)) + '</td><td class="table-actions"><button type="button" class="secondary-button draft-view-button" data-sop-id="' + escapeHtml(item.doc.id) + '">View</button><button type="button" class="primary-button draft-submit-button" data-sop-id="' + escapeHtml(item.doc.id) + '" data-revision-id="' + escapeHtml(item.revision.id) + '" data-sop-code="' + escapeHtml(item.doc.sop_code) + '" data-revision-code="' + escapeHtml(item.revision.revision_code) + '">Submit for Validation</button></td></tr>').join("");
+            body.innerHTML = drafts.map(item => '<tr><td>' + escapeHtml(item.doc.sop_code || "Unassigned") + '</td><td>' + escapeHtml(item.doc.models?.name || "") + '</td><td>' + escapeHtml(item.doc.part_names?.name || "") + '</td><td>' + escapeHtml(item.revision.revision_code || "") + '</td><td>' + escapeHtml(formatDate(item.revision.created_at || item.doc.created_at)) + '</td><td class="table-actions"><button type="button" class="secondary-button draft-view-button" data-sop-id="' + escapeHtml(item.doc.id) + '">View</button><button type="button" class="primary-button draft-submit-button" data-sop-id="' + escapeHtml(item.doc.id) + '" data-revision-id="' + escapeHtml(item.revision.id) + '" data-sop-code="' + escapeHtml(item.doc.sop_code) + '" data-revision-code="' + escapeHtml(item.revision.revision_code) + '">Submit for Validation</button></td></tr>').join("");
         } catch (error) {
             console.error("Error loading My Drafts:", error);
             body.innerHTML = '<tr><td colspan="6">Unable to load drafts. Check Supabase permissions and the browser console.</td></tr>';
@@ -535,7 +537,7 @@ async function initializeSopPage() {
             const row = document.createElement("tr");
             row.innerHTML = `
                 <td>${sop.workshops?.name || ""}</td>
-                <td>${sop.sop_code}</td>
+                <td>${sop.sop_code || "Unassigned"}</td>
                 <td>${sop.process_areas?.name || ""}</td>
                 <td>${sop.models?.name || ""}</td>
                 <td>${sop.part_names?.name || ""}</td>
@@ -636,7 +638,7 @@ async function initializeSopPage() {
             <div class="sop-modal-grid">
                 <div class="sop-modal-field">
                     <span>SOP Code</span>
-                    <strong>${sop.sop_code}</strong>
+                    <strong>${sop.sop_code || "Unassigned"}</strong>
                 </div>
                 <div class="sop-modal-field">
                     <span>Revision</span>

@@ -23,6 +23,10 @@ async function initializeSopPage() {
     const descriptionLabel = document.getElementById("sop-description-label");
     const descriptionInput = document.getElementById("sop-description");
     const fileInput = document.getElementById("sop-file");
+    function setMyDraftsCount(count) {
+        const counter = document.getElementById("my-drafts-count");
+        if (counter) counter.textContent = String(count);
+    }
     async function refreshWorkflowCounts() {
         try {
             const { data: instances, error: instanceError } = await supabaseClient.from("workflow_instances").select("id,status").in("status", ["active", "in_progress", "pending"]);
@@ -65,7 +69,10 @@ async function initializeSopPage() {
         sections.forEach(section => section.classList.add("hidden"));
         const targetSection = document.getElementById(sectionId);
         if (targetSection) targetSection.classList.remove("hidden");
-        if (sectionId === "sop-control") refreshWorkflowCounts();
+        if (sectionId === "sop-control") {
+            refreshWorkflowCounts();
+            loadMyDrafts();
+        }
         window.scrollTo({ top: 0, behavior: "smooth" });
     }
     window.addEventListener("focus", () => {
@@ -543,6 +550,7 @@ async function initializeSopPage() {
                 if (revisionError) {
                     console.error("Error retrieving created SOP revision:", revisionError);
                     alert("SOP " + sopDisplayCode + " was created as Draft, but its revision could not be retrieved. Submission did not start. " + revisionError.message);
+                    await loadMyDrafts();
                     await loadSopCatalog();
                     return;
                 }
@@ -558,6 +566,7 @@ async function initializeSopPage() {
                 if (workflowError) {
                     console.error("Error starting SOP workflow:", workflowError);
                     alert("SOP " + sopDisplayCode + " was created as Draft, but submission for validation failed. No workflow was started. " + workflowError.message);
+                    await loadMyDrafts();
                     await loadSopCatalog();
                     return;
                 }
@@ -606,7 +615,11 @@ async function initializeSopPage() {
             const { data: authData, error: authError } = await supabaseClient.auth.getUser();
             if (authError) throw authError;
             const userId = authData?.user?.id;
-            if (!userId) { body.innerHTML = '<tr><td colspan="8">Please sign in to view your drafts.</td></tr>'; return; }
+            if (!userId) {
+                setMyDraftsCount(0);
+                body.innerHTML = '<tr><td colspan="8">Please sign in to view your drafts.</td></tr>';
+                return;
+            }
             const { data: documents, error: documentError } = await supabaseClient
                 .from("sop_documents")
                 .select("id,sop_code,part_number,operation_name,created_at,created_by,models(name),part_names(name),sop_revisions(id,revision_code,revision_number,status,created_at,created_by,description)")
@@ -617,10 +630,13 @@ async function initializeSopPage() {
                 .filter(revision => String(revision.status || "").toLowerCase() === "draft" && String(revision.created_by || doc.created_by) === String(userId))
                 .map(revision => ({doc, revision})))
                 .sort((a,b) => new Date(b.revision.created_at || b.doc.created_at) - new Date(a.revision.created_at || a.doc.created_at));
+            setMyDraftsCount(drafts.length);
             if (!drafts.length) { body.innerHTML = '<tr><td colspan="8">You have no draft SOPs.</td></tr>'; return; }
             body.innerHTML = drafts.map(item => '<tr><td>' + escapeHtml(item.doc.sop_code || "Unassigned") + '</td><td>' + escapeHtml(item.doc.models?.name || "") + '</td><td>' + escapeHtml(item.doc.part_names?.name || "") + '</td><td>' + escapeHtml(item.doc.part_number || "") + '</td><td>' + escapeHtml(item.doc.operation_name || "") + '</td><td>' + escapeHtml(item.revision.revision_code || "") + '</td><td>' + escapeHtml(formatDate(item.revision.created_at || item.doc.created_at)) + '</td><td class="table-actions"><button type="button" class="secondary-button draft-view-button" data-sop-id="' + escapeHtml(item.doc.id) + '">View</button><button type="button" class="secondary-button edit-draft-button" data-sop-id="' + escapeHtml(item.doc.id) + '">Edit</button><button type="button" class="primary-button draft-submit-button" data-sop-id="' + escapeHtml(item.doc.id) + '" data-revision-id="' + escapeHtml(item.revision.id) + '" data-sop-code="' + escapeHtml(item.doc.sop_code || "Unassigned") + '" data-revision-code="' + escapeHtml(item.revision.revision_code) + '">Submit</button><button type="button" class="danger-button delete-draft-button" data-sop-id="' + escapeHtml(item.doc.id) + '">Delete</button></td></tr>').join("");
         } catch (error) {
             console.error("Error loading My Drafts:", error);
+            const counter = document.getElementById("my-drafts-count");
+            if (counter) counter.title = "Could not refresh. See browser console.";
             body.innerHTML = '<tr><td colspan="8">Unable to load drafts. Check Supabase permissions and the browser console.</td></tr>';
         }
     }

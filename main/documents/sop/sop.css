@@ -12,46 +12,80 @@
     margin-bottom: 20px;
 }
 
-.control-actions {
-    display: flex;
-    gap: 10px;
-    margin: 20px 0px;
+.sop-control-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border: 1px solid #d9dfe3;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
+    margin: 20px 0;
 }
 
-.control-actions button,
+.sop-control-tile {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 96px;
+    width: 100%;
+    padding: 22px;
+    background: #fff;
+    border: 0;
+    border-right: 1px solid #d9dfe3;
+    border-bottom: 1px solid #d9dfe3;
+    color: #263238;
+    text-align: left;
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.sop-control-tile:nth-child(2n) {
+    border-right: 0;
+}
+
+.sop-control-tile:nth-last-child(-n + 2) {
+    border-bottom: 0;
+}
+
+.sop-control-tile strong {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    height: 44px;
+    padding: 0 10px;
+    border-radius: 999px;
+    background: #eefafa;
+    color: #007f83;
+    font-size: 22px;
+}
+
+.sop-control-tile:hover {
+    background: #f7fcfc;
+}
+
 .workflow-summary button,
 .table-actions button {
     font-family: inherit;
 }
 
-.document-status {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
-    margin: 20px 0px;
-}
+@media (max-width: 700px) {
+    .sop-control-grid {
+        grid-template-columns: 1fr;
+    }
 
-.status-card {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    padding: 20px;
-    background: #fff;
-    border: 1px solid #d9dfe3;
-    border-radius: 8px;
-    color: #263238;
-    text-align: left;
-    font-size: 14px;
-    cursor: pointer;
-}
+    .sop-control-tile,
+    .sop-control-tile:nth-child(2n),
+    .sop-control-tile:nth-last-child(-n + 2) {
+        border-right: 0;
+        border-bottom: 1px solid #d9dfe3;
+    }
 
-.status-card strong {
-    font-size: 24px;
-}
-
-.status-card:hover {
-    border-color: #8bd8d8;
+    .sop-control-tile:last-child {
+        border-bottom: 0;
+    }
 }
 
 .workflow-summary {

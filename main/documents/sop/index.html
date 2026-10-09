@@ -25,21 +25,22 @@
             <section class="content">
 
                 <section id="sop-control" class="sop-section sop-view">
-                    <div>
-                        <div class="section-header">
-                                <h2>SOP Control</h2>
-                        </div>
-                        <div class="control-actions">
-                            <button type="button" class="primary-button create-sop-button">Create New SOP</button>
-                            <button type="button" class="secondary-button" data-section="sop-drafts">My Drafts</button>
-                        </div>
+                    <div class="section-header">
+                        <h2>SOP Control</h2>
                     </div>
-                    <div class="document-status">
-                        <button type="button" class="status-card" data-section="sop-validation">
+                    <div class="sop-control-grid">
+                        <button type="button" class="sop-control-tile create-sop-button">
+                            <span>Create New SOP</span>
+                        </button>
+                        <button type="button" class="sop-control-tile" data-section="sop-validation">
                             <span>Pending Validation</span>
                             <strong id="pending-validation-count">0</strong>
                         </button>
-                        <button type="button" class="status-card" data-section="sop-approval">
+                        <button type="button" class="sop-control-tile" data-section="sop-drafts">
+                            <span>My Drafts</span>
+                            <strong id="my-drafts-count">0</strong>
+                        </button>
+                        <button type="button" class="sop-control-tile" data-section="sop-approval">
                             <span>Pending Approval</span>
                             <strong id="pending-approval-count">0</strong>
                         </button>

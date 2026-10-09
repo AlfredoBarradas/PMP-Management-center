@@ -354,6 +354,62 @@ async function initializeSopPage() {
     }
 
 
+    function validateSopForm() {
+        const alertBox = document.getElementById("sop-validation-alert");
+        const fields = [
+            { id: "sop-workshop", label: "Workshop area" },
+            { id: "sop-process", label: "Process area" },
+            { id: "sop-model-series", label: "Model series" },
+            { id: "sop-model", label: "Model size" },
+            { id: "sop-part-name", label: "Part Name" },
+            { id: "sop-part-number", label: "Part Number" },
+            { id: "sop-operation", label: "Operation Name" },
+            { id: "sop-description", label: "Description" }
+        ];
+        const missing = [];
+        fields.forEach(field => {
+            const input = document.getElementById(field.id);
+            const group = input.closest(".form-group");
+            const empty = !String(input.value || "").trim();
+            group?.classList.toggle("sop-field-invalid", empty);
+            input.setAttribute("aria-invalid", empty ? "true" : "false");
+            const existingError = group?.querySelector(".sop-field-error");
+            if (existingError) existingError.remove();
+            if (empty) {
+                missing.push(field.label);
+                const message = document.createElement("small");
+                message.className = "sop-field-error";
+                message.textContent = "This field is required.";
+                group?.appendChild(message);
+            }
+        });
+        if (missing.length) {
+            alertBox.innerHTML = "<h3>Please complete all required fields.</h3><p>The following fields are missing:</p><ul>" + missing.map(label => "<li>" + escapeHtml(label) + "</li>").join("") + "</ul>";
+            alertBox.classList.remove("hidden");
+            const firstMissing = fields.find(field => missing.includes(field.label));
+            document.getElementById(firstMissing.id).focus();
+            alertBox.scrollIntoView({ behavior: "smooth", block: "center" });
+            return false;
+        }
+        alertBox.classList.add("hidden");
+        alertBox.innerHTML = "";
+        return true;
+    }
+    sopForm.addEventListener("input", event => {
+        if (event.target.matches("input, textarea, select")) {
+            const group = event.target.closest(".form-group");
+            if (group && String(event.target.value || "").trim()) {
+                group.classList.remove("sop-field-invalid");
+                event.target.setAttribute("aria-invalid", "false");
+                group.querySelector(".sop-field-error")?.remove();
+            }
+            if (!sopForm.querySelector(".sop-field-invalid")) {
+                const alertBox = document.getElementById("sop-validation-alert");
+                alertBox.classList.add("hidden");
+                alertBox.innerHTML = "";
+            }
+        }
+    });
     async function saveNewSop({ submitForValidation = false } = {}) {
         const workshopId = document.getElementById("sop-workshop").value;
         const processAreaId = document.getElementById("sop-process").value;
@@ -362,14 +418,7 @@ async function initializeSopPage() {
         const partNumber = document.getElementById("sop-part-number").value.trim();
         const operationName = document.getElementById("sop-operation").value.trim();
         const description = document.getElementById("sop-description").value.trim();
-        if (!workshopId || !processAreaId || !modelId || !partNameId) {
-            alert("Please complete all required selections.");
-            return;
-        }
-        if (!partNumber || !operationName || !description) {
-            alert("Please complete Part Number, Operation Name, and Description.");
-            return;
-        }
+        if (!validateSopForm()) return;
         const saveButton = document.getElementById("save-sop-draft");
         const submitButton = sopForm.querySelector('button[type="submit"]');
         const originalSaveText = saveButton.textContent;

@@ -412,7 +412,7 @@ async function initializeSopPage() {
     });
     loadModelSeries();
 
-    document.getElementById("save-sop-draft").addEventListener("click", saveNewSop);
+    // Removed duplicate legacy click handler; the configured handler above handles Save Draft.
 
 
 

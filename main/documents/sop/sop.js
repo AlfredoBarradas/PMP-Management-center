@@ -821,6 +821,7 @@ async function initializeSopPage() {
             row.innerHTML = "<td>"+escapeHtml(formatDate(current?.released_at||current?.created_at||sop.created_at))+"</td>"+
                 "<td>"+renderStatusBadge(status)+"</td>"+
                 "<td>"+escapeHtml(sop.sop_code||"Unassigned")+"</td>"+
+                "<td>"+renderRevisionBadge(current?.revision_code,status)+"</td>"+
                 "<td>"+escapeHtml(sop.workshops?.name||"")+"</td>"+
                 "<td>"+escapeHtml(sop.process_areas?.name||"")+"</td>"+
                 "<td>"+escapeHtml(sop.models?.name||"")+"</td>"+
@@ -861,7 +862,7 @@ async function initializeSopPage() {
             const colgroup = document.createElement("colgroup");
             const tableWidth = Math.max(table.getBoundingClientRect().width, 1);
             const defaultWidths = {
-                "sop-catalog": [8, 9, 10, 8, 9, 7, 9, 10, 14],
+                "sop-catalog": [8, 9, 9, 8, 8, 8, 7, 8, 10, 12],
                 "sop-drafts": [11, 10, 10, 10, 14, 13, 22],
                 "sop-validation": [9, 10, 8, 11, 12, 14, 12, 13, 11],
                 "sop-approval": [12, 12, 11, 13, 14, 14, 12],

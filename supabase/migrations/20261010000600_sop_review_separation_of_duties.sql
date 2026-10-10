@@ -76,6 +76,29 @@ BEGIN
              )
             WHERE wh.instance_id = v_instance_id
               AND wh.event_type = 'task_completed'
+              AND wh.actor_id = v_revision_creator
+              AND validation_node.required_permission_code = 'documents.sop.validate'
+       ) THEN
+        RAISE EXCEPTION 'Separation of duties: a revision validated by its creator cannot be approved; return it to Draft and resubmit'
+            USING ERRCODE = '42501';
+    END IF;
+
+    IF v_required_permission = 'documents.sop.approve'
+       AND EXISTS (
+            SELECT 1
+            FROM public.workflow_history AS wh
+            JOIN public.workflow_tasks AS validation_task
+              ON validation_task.id = wh.task_id
+             AND validation_task.instance_id = wh.instance_id
+            JOIN public.workflow_nodes AS validation_node
+              ON validation_node.id = validation_task.node_id
+             AND validation_node.version_id = (
+                 SELECT wi.version_id
+                 FROM public.workflow_instances AS wi
+                 WHERE wi.id = v_instance_id
+             )
+            WHERE wh.instance_id = v_instance_id
+              AND wh.event_type = 'task_completed'
               AND wh.actor_id = auth.uid()
               AND validation_node.required_permission_code = 'documents.sop.validate'
        ) THEN

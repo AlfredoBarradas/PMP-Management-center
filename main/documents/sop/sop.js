@@ -741,7 +741,7 @@ async function initializeSopPage() {
             const firstLabel=select.options[0]?.textContent||"All";
             select.innerHTML='<option value="">'+escapeCatalogText(firstLabel)+'</option>'+values.map(value=>'<option value="'+escapeCatalogText(value)+'">'+escapeCatalogText(value)+'</option>').join("");
             if(values.includes(current))select.value=current;
-            select.addEventListener("change",renderFilteredSopCatalog,{once:true});
+            select.addEventListener("change",renderFilteredSopCatalog);
         });
     }
     function renderFilteredSopCatalog(){
@@ -772,6 +772,15 @@ async function initializeSopPage() {
         }).join("");
     }
     document.getElementById("sop-search-box")?.addEventListener("input",renderFilteredSopCatalog);
+    [["sop-drafts-search","sop-drafts-body"],["sop-validation-search","sop-validation-body"],["sop-approval-search","sop-approval-body"],["sop-workflow-search","sop-workflow-body"]].forEach(([inputId,bodyId])=>{
+        const input=document.getElementById(inputId),body=document.getElementById(bodyId);
+        if(!input||!body)return;
+        input.addEventListener("input",()=>{
+            const query=input.value.trim().toLowerCase();
+            [...body.querySelectorAll("tr")].forEach(row=>{row.hidden=Boolean(query)&&!row.textContent.toLowerCase().includes(query);});
+        });
+    });
+
         function formatDate(dateString) {
         if (!dateString) return "";
         return new Date(dateString).toLocaleDateString("en-US");

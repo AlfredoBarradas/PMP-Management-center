@@ -937,16 +937,16 @@ async function initializeSopPage() {
             let history = [];
             if (instanceIds.length) {
                 const { data, error } = await supabaseClient.from("workflow_history")
-                    .select("instance_id,event_type,from_status,to_status,created_at,details")
+                    .select("instance_id,task_id,event_type,from_status,to_status,created_at,details")
                     .in("instance_id", instanceIds).order("created_at", { ascending: true });
                 if (error) throw error;
                 history = data || [];
             }
-            const events = history.map(item => ({
-                label: [item.event_type, item.to_status].filter(Boolean).join(" · "),
-                date: item.created_at,
-                details: item.details || {}
-            }));
+            const events = history.map(item => {
+                const raw = String(item.event_type || item.to_status || "Workflow update").toLowerCase().replace(/[_-]+/g, " ");
+                const label = raw.includes("validat") ? "Validated" : raw.includes("reject") ? "Rejected" : raw.includes("complet") || raw.includes("finish") || raw.includes("release") ? "Completed" : raw.replace(/\b\w/g, char => char.toUpperCase());
+                return { label, date: item.created_at, details: item.details || {} };
+            });
             (instances || []).forEach(item => {
                 const status = String(item.status || "").toLowerCase();
                 if (status === "completed" || status === "rejected") events.push({

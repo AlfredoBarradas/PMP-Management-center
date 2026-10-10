@@ -772,6 +772,12 @@ async function initializeSopPage() {
         }).join("");
     }
     document.getElementById("sop-search-box")?.addEventListener("input",renderFilteredSopCatalog);
+    document.getElementById("clear-sop-filters")?.addEventListener("click",()=>{
+        const search=document.getElementById("sop-search-box");
+        if(search)search.value="";
+        catalogFilterConfig.forEach(config=>{const select=document.getElementById(config.id);if(select)select.value="";});
+        renderFilteredSopCatalog();
+    });
     [["sop-drafts-search","sop-drafts-body"],["sop-validation-search","sop-validation-body"],["sop-approval-search","sop-approval-body"],["sop-workflow-search","sop-workflow-body"]].forEach(([inputId,bodyId])=>{
         const input=document.getElementById(inputId),body=document.getElementById(bodyId);
         if(!input||!body)return;

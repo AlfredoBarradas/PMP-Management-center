@@ -849,3 +849,181 @@
 #sop-catalog .catalog-table th:nth-child(12) { width: 8%; }
 #sop-workflow-body .workflow-clickable-row { cursor: pointer; }
 #sop-workflow-body .workflow-clickable-row:hover { background: #e5f4f2; box-shadow: inset 3px 0 0 #168a80; }
+
+
+/* PMP Management Center visual system: teal, petroleum and compact surfaces */
+:root {
+    --pmp-primary: #00AAA6;
+    --pmp-hover: #A3DEDA;
+    --pmp-success: #A6DFCC;
+    --pmp-info: #0070C0;
+    --pmp-structure: #4D839B;
+    --pmp-attention: #C3D69B;
+    --pmp-sidebar: #123746;
+    --pmp-page: #F3F7F7;
+    --pmp-surface: #FFFFFF;
+    --pmp-text: #17313D;
+    --pmp-muted: #607D8B;
+    --pmp-border: #D8E5E7;
+    --pmp-danger: #D92D3A;
+    --pmp-danger-hover: #B42332;
+    --pmp-danger-soft: #FDEBEC;
+    --pmp-danger-border: #F2A7AE;
+}
+body[data-page="SOP"] .content {
+    min-width: 0;
+    width: 100%;
+    max-width: none;
+    margin-inline: 0;
+    padding: clamp(16px, 2vw, 28px);
+    background: var(--pmp-page);
+    color: var(--pmp-text);
+}
+body[data-page="SOP"] .sop-section,
+body[data-page="SOP"] .sop-catalog,
+body[data-page="SOP"] .catalog-table {
+    min-width: 0;
+    max-width: 100%;
+}
+body[data-page="SOP"] .sop-section > .section-header { margin: 0 0 18px; }
+body[data-page="SOP"] .sop-control-grid,
+body[data-page="SOP"] .workflow-summary,
+body[data-page="SOP"] .sop-catalog,
+body[data-page="SOP"] .catalog-table,
+body[data-page="SOP"] .form-section {
+    background: var(--pmp-surface);
+    border: 1px solid var(--pmp-border);
+    border-radius: 14px;
+    box-shadow: 0 5px 18px rgba(23, 49, 61, .035);
+}
+body[data-page="SOP"] .sop-control-grid { margin: 18px 0; }
+body[data-page="SOP"] .sop-control-tile { min-width: 0; background: #fff; border-color: var(--pmp-border); }
+body[data-page="SOP"] .sop-control-tile:hover { background: #E8F8F7; }
+body[data-page="SOP"] .sop-control-tile strong { background: #E4F7F5; color: #007F7C; }
+body[data-page="SOP"] .workflow-summary { margin: 18px 0 24px; padding: 20px; }
+body[data-page="SOP"] .sop-catalog { padding: clamp(14px, 1.8vw, 24px); margin: 0; }
+body[data-page="SOP"] .sop-catalog .section-header { margin: 0 0 18px; }
+body[data-page="SOP"] .sop-section h2 { color: var(--pmp-text); }
+body[data-page="SOP"] .sop-catalog .section-header p,
+body[data-page="SOP"] .workflow-summary p { color: var(--pmp-muted); }
+body[data-page="SOP"] .catalog-search { margin: 14px 0; }
+body[data-page="SOP"] .catalog-search input,
+body[data-page="SOP"] .filter-group select,
+body[data-page="SOP"] .form-group input,
+body[data-page="SOP"] .form-group select,
+body[data-page="SOP"] .form-group textarea {
+    box-sizing: border-box;
+    min-width: 0;
+    border: 1px solid var(--pmp-border);
+    border-radius: 9px;
+    background: #fff;
+    color: var(--pmp-text);
+}
+body[data-page="SOP"] .catalog-search input:focus,
+body[data-page="SOP"] .filter-group select:focus,
+body[data-page="SOP"] .form-group input:focus,
+body[data-page="SOP"] .form-group select:focus,
+body[data-page="SOP"] .form-group textarea:focus {
+    outline: 2px solid var(--pmp-hover);
+    outline-offset: 1px;
+    border-color: var(--pmp-primary);
+}
+body[data-page="SOP"] .catalog-filters { grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr)); gap: 12px; }
+body[data-page="SOP"] .catalog-table {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow-x: hidden !important;
+    overflow-y: visible;
+    margin-top: 12px;
+}
+body[data-page="SOP"] .catalog-table table {
+    width: 100%;
+    min-width: 0 !important;
+    table-layout: fixed;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+body[data-page="SOP"] .catalog-table th {
+    background: #EAF2F4;
+    color: var(--pmp-text);
+    border-bottom: 1px solid var(--pmp-border);
+    font-size: 12px;
+    letter-spacing: .015em;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    padding: 12px 10px;
+}
+body[data-page="SOP"] .catalog-table td {
+    padding: 12px 10px;
+    border-bottom: 1px solid #E8EFF0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: normal;
+    font-size: 13px;
+    vertical-align: middle;
+}
+body[data-page="SOP"] .catalog-table tbody tr:last-child td { border-bottom: 0; }
+body[data-page="SOP"] .catalog-table tbody tr:hover { background: #E7F7F6; }
+body[data-page="SOP"] .catalog-table tbody tr.catalog-clickable-row:hover,
+body[data-page="SOP"] #sop-catalog-body tr:hover {
+    background: #E7F7F6;
+    box-shadow: inset 3px 0 0 var(--pmp-primary);
+}
+body[data-page="SOP"] .catalog-table tbody tr.catalog-clickable-row:focus-visible {
+    outline: 2px solid var(--pmp-primary);
+    outline-offset: -2px;
+}
+body[data-page="SOP"] .primary-button {
+    background: var(--pmp-primary);
+    border: 1px solid var(--pmp-primary);
+    color: #fff;
+    border-radius: 9px;
+}
+body[data-page="SOP"] .primary-button:hover { background: #008F8B; }
+body[data-page="SOP"] .secondary-button {
+    border: 1px solid var(--pmp-border);
+    background: #fff;
+    color: var(--pmp-text);
+    border-radius: 9px;
+}
+body[data-page="SOP"] .secondary-button:hover { background: #E7F7F6; border-color: var(--pmp-hover); }
+body[data-page="SOP"] .remark-button { border-color: var(--pmp-primary); color: #007F7C; border-radius: 9px; }
+body[data-page="SOP"] .remark-button:hover { background: #E7F7F6; }
+body[data-page="SOP"] .danger-button { border-color: var(--pmp-danger); color: var(--pmp-danger); border-radius: 9px; }
+body[data-page="SOP"] .danger-button:hover { background: var(--pmp-danger-soft); }
+body[data-page="SOP"] .sop-modal-content { border: 1px solid var(--pmp-border); border-radius: 16px; }
+body[data-page="SOP"] .sop-modal-header,
+body[data-page="SOP"] .sop-modal-footer { border-color: var(--pmp-border); }
+body[data-page="SOP"] .sop-modal-body { min-height: 0; }
+body[data-page="SOP"] .sop-workflow-detail { margin-top: 18px; padding: 0; }
+body[data-page="SOP"] .workflow-history-list { gap: 8px; }
+body[data-page="SOP"] .workflow-history-list li { padding: 8px 0; }
+body[data-page="SOP"] .workflow-history-list p { border-left-color: var(--pmp-hover); background: #F3F8F8; }
+body[data-page="SOP"] .status-badge.status-released,
+body[data-page="SOP"] .status-badge.status-completed { background: #DDF3E9; color: #176B46; border: 1px solid #A6DFCC; }
+body[data-page="SOP"] .status-badge.status-validation,
+body[data-page="SOP"] .status-badge.status-in_validation,
+body[data-page="SOP"] .status-badge.status-in_progress { background: #E1F4F3; color: #006F6C; border: 1px solid #A3DEDA; }
+body[data-page="SOP"] .status-badge.status-approval,
+body[data-page="SOP"] .status-badge.status-in_approval { background: #F0F5DE; color: #566A20; border: 1px solid #C3D69B; }
+body[data-page="SOP"] .status-badge.status-rejected { background: var(--pmp-danger-soft); color: #8F1D27; border: 1px solid var(--pmp-danger-border); }
+body[data-page="SOP"] .sop-validation-alert { background: var(--pmp-danger-soft); border: 1px solid var(--pmp-danger-border); color: #8F1D27; }
+body[data-page="SOP"] .sop-field-invalid input,
+body[data-page="SOP"] .sop-field-invalid select,
+body[data-page="SOP"] .sop-field-invalid textarea { border: 1px solid var(--pmp-danger) !important; background: #FFF7F7; }
+@media (max-width: 900px) {
+    body[data-page="SOP"] .content { padding: 14px; }
+    body[data-page="SOP"] .catalog-table th,
+    body[data-page="SOP"] .catalog-table td { padding: 9px 7px; font-size: 12px; }
+    body[data-page="SOP"] .sop-modal-content { width: calc(100vw - 24px); max-height: 90vh; }
+}
+@media (max-width: 600px) {
+    body[data-page="SOP"] .content { padding: 10px; }
+    body[data-page="SOP"] .sop-control-grid { grid-template-columns: 1fr; }
+    body[data-page="SOP"] .workflow-summary { padding: 14px; }
+    body[data-page="SOP"] .sop-catalog { padding: 10px; }
+    body[data-page="SOP"] .catalog-table th,
+    body[data-page="SOP"] .catalog-table td { padding: 8px 5px; font-size: 11px; }
+    body[data-page="SOP"] .sop-modal-grid { grid-template-columns: 1fr; }
+}

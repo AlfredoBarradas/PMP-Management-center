@@ -188,7 +188,7 @@ BEGIN
 
                 UPDATE public.sop_documents
                 SET sop_number = v_next_sop_number,
-                    sop_code = v_workshop_code || '-' || pg_catalog.lpad(v_next_sop_number::text, 4, '0'),
+                    sop_code = v_workshop_code || '-' || pg_catalog.lpad(v_next_sop_number::text, GREATEST(4, pg_catalog.length(v_next_sop_number::text)), '0'),
                     updated_at = pg_catalog.now()
                 WHERE id = v_source_document_id
                   AND sop_number IS NULL
@@ -204,7 +204,7 @@ BEGIN
                     pg_catalog.jsonb_build_object(
                         'workshop_id', v_workshop_id,
                         'sop_number', v_next_sop_number,
-                        'sop_code', v_workshop_code || '-' || pg_catalog.lpad(v_next_sop_number::text, 4, '0')
+                        'sop_code', v_workshop_code || '-' || pg_catalog.lpad(v_next_sop_number::text, GREATEST(4, pg_catalog.length(v_next_sop_number::text)), '0')
                     )
                 );
             END IF;

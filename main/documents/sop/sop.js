@@ -83,7 +83,7 @@ async function initializeSopPage() {
             const [docs,revisions,nodes,tasks]=await Promise.all([
                 docIds.length?supabaseClient.from("sop_documents").select("id,sop_code,operation_name").in("id",docIds):Promise.resolve({data:[],error:null}),
                 revisionIds.length?supabaseClient.from("sop_revisions").select("id,revision_code,status").in("id",revisionIds):Promise.resolve({data:[],error:null}),
-                nodeIds.length?supabaseClient.from("workflow_nodes").select("id,label,node_type").in("id",nodeIds):Promise.resolve({data:[],error:null}),
+                supabaseClient.from("workflow_nodes").select("id,label,node_type"),
                 supabaseClient.from("workflow_tasks").select("id,instance_id,node_id,status,created_at").in("instance_id",instanceIds).order("created_at",{ascending:false})
             ]);
             for (const result of [docs,revisions,nodes,tasks]) if(result.error) throw result.error;

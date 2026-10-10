@@ -84,18 +84,18 @@ BEGIN
        AND EXISTS (
             SELECT 1
             FROM public.workflow_history AS wh
+            JOIN public.workflow_instances AS validation_instance
+              ON validation_instance.id = wh.instance_id
+             AND validation_instance.document_type_code = 'sop'
+             AND validation_instance.source_document_id = v_source_document_id
+             AND validation_instance.source_revision_id = v_source_revision_id
             JOIN public.workflow_tasks AS validation_task
               ON validation_task.id = wh.task_id
              AND validation_task.instance_id = wh.instance_id
             JOIN public.workflow_nodes AS validation_node
               ON validation_node.id = validation_task.node_id
-             AND validation_node.version_id = (
-                 SELECT wi.version_id
-                 FROM public.workflow_instances AS wi
-                 WHERE wi.id = v_instance_id
-             )
-            WHERE wh.instance_id = v_instance_id
-              AND wh.event_type = 'task_completed'
+             AND validation_node.version_id = validation_instance.version_id
+            WHERE wh.event_type = 'task_completed'
               AND wh.actor_id = v_revision_creator
               AND validation_node.required_permission_code = 'documents.sop.validate'
        ) THEN
@@ -107,18 +107,18 @@ BEGIN
        AND EXISTS (
             SELECT 1
             FROM public.workflow_history AS wh
+            JOIN public.workflow_instances AS validation_instance
+              ON validation_instance.id = wh.instance_id
+             AND validation_instance.document_type_code = 'sop'
+             AND validation_instance.source_document_id = v_source_document_id
+             AND validation_instance.source_revision_id = v_source_revision_id
             JOIN public.workflow_tasks AS validation_task
               ON validation_task.id = wh.task_id
              AND validation_task.instance_id = wh.instance_id
             JOIN public.workflow_nodes AS validation_node
               ON validation_node.id = validation_task.node_id
-             AND validation_node.version_id = (
-                 SELECT wi.version_id
-                 FROM public.workflow_instances AS wi
-                 WHERE wi.id = v_instance_id
-             )
-            WHERE wh.instance_id = v_instance_id
-              AND wh.event_type = 'task_completed'
+             AND validation_node.version_id = validation_instance.version_id
+            WHERE wh.event_type = 'task_completed'
               AND wh.actor_id = auth.uid()
               AND validation_node.required_permission_code = 'documents.sop.validate'
        ) THEN

@@ -896,11 +896,13 @@ async function initializeSopPage() {
                     <span>Description</span>
                     <p>${currentRevision?.description || ""}</p>
                 </div>
-                <div class="sop-modal-actions">
-                    <button type="button" class="remark-button modal-revision-button" data-sop-id="${sop.id}">
-                        Revision
-                    </button>
-                </div>
+                ${String(currentRevision?.status || "").toLowerCase() === "released" ? `
+                    <div class="sop-modal-actions">
+                        <button type="button" class="remark-button modal-revision-button" data-sop-id="${sop.id}">
+                            Revision
+                        </button>
+                    </div>
+                ` : ""}
             </div>
         `;
     }

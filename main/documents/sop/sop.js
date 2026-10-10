@@ -69,6 +69,7 @@ async function initializeSopPage() {
         sections.forEach(section => section.classList.add("hidden"));
         const targetSection = document.getElementById(sectionId);
         if (targetSection) targetSection.classList.remove("hidden");
+        initializeResizableCatalogColumns();
         if (sectionId === "sop-control") {
             refreshWorkflowCounts();
             loadMyDrafts();
@@ -1029,7 +1030,7 @@ function initializeResizableCatalogColumns() {
     document.querySelectorAll(".catalog-table table").forEach(table => {
         if (table.dataset.columnsResizable === "true") return;
         const headers = [...table.querySelectorAll("thead th")];
-        if (!headers.length) return;
+        if (!headers.length || table.getBoundingClientRect().width < 1) return;
         const widths = headers.map(header => Math.max(60, Math.round(header.getBoundingClientRect().width)));
         headers.forEach((header, index) => {
             header.style.width = widths[index] + "px";

@@ -923,6 +923,76 @@ async function initializeSopPage() {
         }
         renderSopModal(data);
         document.getElementById("sop-modal").dataset.sop = JSON.stringify(data);
+        await renderSopWorkflowHistory(sopId);
+    }
+
+    async function renderSopWorkflowHistory(sopId) {
+        const modalBody = document.querySelector(".sop-modal-body");
+        try {
+            const { data: instances, error: instanceError } = await supabaseClient
+                .from("workflow_instances").select("id,status,started_at,completed_at")
+                .eq("source_document_id", Number(sopId)).order("started_at", { ascending: false });
+            if (instanceError) throw instanceError;
+            const instanceIds = (instances || []).map(item => item.id);
+            let history = [];
+            if (instanceIds.length) {
+                const { data, error } = await supabaseClient.from("workflow_history")
+                    .select("instance_id,event_type,from_status,to_status,created_at,details")
+                    .in("instance_id", instanceIds).order("created_at", { ascending: true });
+                if (error) throw error;
+                history = data || [];
+            }
+            const events = history.map(item => ({
+                label: [item.event_type, item.to_status].filter(Boolean).join(" · "),
+                date: item.created_at,
+                details: item.details || {}
+            }));
+            (instances || []).forEach(item => {
+                const status = String(item.status || "").toLowerCase();
+                if (status === "completed" || status === "rejected") events.push({
+                    label: status === "completed" ? "Completed" : "Rejected",
+                    date: item.completed_at || item.started_at,
+                    details: {}
+                });
+            });
+            const uniqueEvents = [...new Map(events.map(item => [String(item.label)+"|"+String(item.date), item])).values()]
+                .sort((a,b) => new Date(a.date || 0) - new Date(b.date || 0));
+            const section = document.createElement("section");
+            section.className = "sop-workflow-detail";
+            section.innerHTML = '<h3>Workflow History</h3>';
+            if (!uniqueEvents.length) {
+                section.insertAdjacentHTML("beforeend", '<p>No validation, rejection, or completion events recorded yet.</p>');
+            } else {
+                const list = document.createElement("ol");
+                list.className = "workflow-history-list";
+                uniqueEvents.forEach(item => {
+                    const li = document.createElement("li");
+                    const title = document.createElement("strong");
+                    title.textContent = item.label || "Workflow update";
+                    li.appendChild(title);
+                    if (item.date) {
+                        const date = document.createElement("small");
+                        date.textContent = " · " + formatDate(item.date);
+                        li.appendChild(date);
+                    }
+                    const comment = item.details?.comments || item.details?.comment || item.details?.reason;
+                    if (comment) {
+                        const p = document.createElement("p");
+                        p.textContent = String(comment);
+                        li.appendChild(p);
+                    }
+                    list.appendChild(li);
+                });
+                section.appendChild(list);
+            }
+            modalBody.appendChild(section);
+        } catch (error) {
+            console.warn("Unable to load SOP workflow history:", error);
+            const section = document.createElement("section");
+            section.className = "sop-workflow-detail";
+            section.innerHTML = '<h3>Workflow History</h3><p>Workflow history is unavailable for this SOP.</p>';
+            modalBody.appendChild(section);
+        }
     }
 
 

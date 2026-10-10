@@ -95,4 +95,42 @@ EXECUTE FUNCTION public.enforce_sop_review_separation_of_duties();
 
 REVOKE ALL ON FUNCTION public.enforce_sop_review_separation_of_duties() FROM PUBLIC, anon, authenticated;
 
+
+-- A Draft can only be submitted by its own revision creator.
+-- This guards the state transition even if the workflow RPC is called directly.
+CREATE OR REPLACE FUNCTION public.enforce_sop_revision_submission_owner()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO ''
+AS $function$
+BEGIN
+    IF TG_OP = 'UPDATE'
+       AND OLD.status = 'Draft'
+       AND NEW.status = 'Validation' THEN
+        IF auth.uid() IS NULL THEN
+            RAISE EXCEPTION 'Authentication required to submit an SOP revision'
+                USING ERRCODE = '42501';
+        END IF;
+        IF NEW.created_by IS DISTINCT FROM auth.uid() THEN
+            RAISE EXCEPTION 'Only the creator of this Draft revision can submit it for validation'
+                USING ERRCODE = '42501';
+        END IF;
+        IF NOT public.has_permission('workflow.instances.start') THEN
+            RAISE EXCEPTION 'Missing permission: workflow.instances.start'
+                USING ERRCODE = '42501';
+        END IF;
+    END IF;
+    RETURN NEW;
+END;
+$function$;
+
+DROP TRIGGER IF EXISTS trg_sop_revision_submission_owner ON public.sop_revisions;
+CREATE TRIGGER trg_sop_revision_submission_owner
+BEFORE UPDATE OF status ON public.sop_revisions
+FOR EACH ROW
+EXECUTE FUNCTION public.enforce_sop_revision_submission_owner();
+
+REVOKE ALL ON FUNCTION public.enforce_sop_revision_submission_owner() FROM PUBLIC, anon, authenticated;
+
 COMMIT;

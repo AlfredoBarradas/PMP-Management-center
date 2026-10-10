@@ -16,6 +16,16 @@ DECLARE
     v_next_number integer;
     v_new_code text;
 BEGIN
+    -- Keep the history sequence ahead of existing IDs before inserting audit rows.
+    PERFORM pg_catalog.setval(
+        'public.sop_workflow_history_id_seq'::regclass,
+        GREATEST(
+            (SELECT COALESCE(MAX(h.id), 0) FROM public.sop_workflow_history h),
+            (SELECT s.last_value FROM public.sop_workflow_history_id_seq s)
+        ),
+        true
+    );
+
     FOR v_doc IN
         SELECT sd.id AS sop_id,
                sd.workshop_id,

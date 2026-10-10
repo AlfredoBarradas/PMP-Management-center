@@ -610,19 +610,19 @@ async function initializeSopPage() {
     async function loadMyDrafts() {
         const body = document.getElementById("sop-drafts-body");
         if (!body) return;
-        body.innerHTML = '<tr><td colspan="8">Loading your drafts...</td></tr>';
+        body.innerHTML = '<tr><td colspan="7">Loading your drafts...</td></tr>';
         try {
             const { data: authData, error: authError } = await supabaseClient.auth.getUser();
             if (authError) throw authError;
             const userId = authData?.user?.id;
             if (!userId) {
                 setMyDraftsCount(0);
-                body.innerHTML = '<tr><td colspan="8">Please sign in to view your drafts.</td></tr>';
+                body.innerHTML = '<tr><td colspan="7">Please sign in to view your drafts.</td></tr>';
                 return;
             }
             const { data: documents, error: documentError } = await supabaseClient
                 .from("sop_documents")
-                .select("id,sop_code,part_number,operation_name,created_at,created_by,models(name),part_names(name),sop_revisions(id,revision_code,revision_number,status,created_at,created_by,description)")
+                .select("id,sop_code,part_number,operation_name,created_at,created_by,workshops(name),process_areas(name),models(name),part_names(name),sop_revisions(id,revision_code,revision_number,status,created_at,created_by,description)")
                 .eq("created_by", userId)
                 .order("created_at", { ascending: false });
             if (documentError) throw documentError;
@@ -631,19 +631,21 @@ async function initializeSopPage() {
                 .map(revision => ({doc, revision})))
                 .sort((a,b) => new Date(b.revision.created_at || b.doc.created_at) - new Date(a.revision.created_at || a.doc.created_at));
             setMyDraftsCount(drafts.length);
-            if (!drafts.length) { body.innerHTML = '<tr><td colspan="8">You have no draft SOPs.</td></tr>'; return; }
-            body.innerHTML = drafts.map(item => '<tr><td>' + escapeHtml(item.doc.sop_code || "Unassigned") + '</td><td>' + escapeHtml(item.doc.models?.name || "") + '</td><td>' + escapeHtml(item.doc.part_names?.name || "") + '</td><td>' + escapeHtml(item.doc.part_number || "") + '</td><td>' + escapeHtml(item.doc.operation_name || "") + '</td><td>' + escapeHtml(item.revision.revision_code || "") + '</td><td>' + escapeHtml(formatDate(item.revision.created_at || item.doc.created_at)) + '</td><td class="table-actions"><button type="button" class="secondary-button draft-view-button" data-sop-id="' + escapeHtml(item.doc.id) + '">View</button><button type="button" class="secondary-button edit-draft-button" data-sop-id="' + escapeHtml(item.doc.id) + '">Edit</button><button type="button" class="primary-button draft-submit-button" data-sop-id="' + escapeHtml(item.doc.id) + '" data-revision-id="' + escapeHtml(item.revision.id) + '" data-sop-code="' + escapeHtml(item.doc.sop_code || "Unassigned") + '" data-revision-code="' + escapeHtml(item.revision.revision_code) + '">Submit</button><button type="button" class="danger-button delete-draft-button" data-sop-id="' + escapeHtml(item.doc.id) + '">Delete</button></td></tr>').join("");
+            if (!drafts.length) { body.innerHTML = '<tr><td colspan="7">You have no draft SOPs.</td></tr>'; return; }
+            body.innerHTML = drafts.map(item => '<tr class="catalog-clickable-row" data-sop-id="' + escapeHtml(item.doc.id) + '" tabindex="0" role="button" aria-label="View SOP ' + escapeHtml(item.doc.sop_code || "Unassigned") + '"><td>' + escapeHtml(item.doc.sop_code || "Unassigned") + '</td><td>' + escapeHtml(item.doc.workshops?.name || "—") + '</td><td>' + escapeHtml(item.doc.process_areas?.name || "—") + '</td><td>' + escapeHtml(item.doc.models?.name || "—") + '</td><td>' + escapeHtml(item.doc.part_names?.name || "—") + '</td><td>' + escapeHtml(item.doc.part_number || "—") + '</td><td>' + escapeHtml(item.doc.operation_name || "—") + '</td></tr>').join("");
         } catch (error) {
             console.error("Error loading My Drafts:", error);
             const counter = document.getElementById("my-drafts-count");
             if (counter) counter.title = "Could not refresh. See browser console.";
-            body.innerHTML = '<tr><td colspan="8">Unable to load drafts. Check Supabase permissions and the browser console.</td></tr>';
+            body.innerHTML = '<tr><td colspan="7">Unable to load drafts. Check Supabase permissions and the browser console.</td></tr>';
         }
     }
     function escapeHtml(value) {
         return String(value ?? "").replace(/[&<>"']/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
     }
     document.addEventListener("click", async event => {
+        const draftRow = event.target.closest("#sop-drafts-body .catalog-clickable-row");
+        if (draftRow && !event.target.closest("button, a, input, select, textarea, label")) { viewSop(draftRow.dataset.sopId); return; }
         const viewButton = event.target.closest(".draft-view-button");
         if (viewButton) { viewSop(viewButton.dataset.sopId); return; }
         const editButton = event.target.closest(".edit-draft-button");
@@ -708,7 +710,7 @@ async function initializeSopPage() {
     }
     async function loadSopCatalog() {
         const catalogBody = document.getElementById("sop-catalog-body");
-        catalogBody.innerHTML = '<tr><td colspan="12">Loading...</td></tr>';
+        catalogBody.innerHTML = '<tr><td colspan="11">Loading...</td></tr>';
         const {data,error}=await supabaseClient.from("sop_documents").select(`
             id,sop_code,part_number,operation_name,created_at,created_by,
             workshops(name,code),process_areas(name,code),
@@ -716,7 +718,7 @@ async function initializeSopPage() {
             part_names(name,code),
             sop_revisions(id,revision_number,revision_code,status,created_at,created_by)
         `).order("created_at",{ascending:false});
-        if(error){console.error("Error loading SOP catalog:",error);catalogBody.innerHTML='<tr><td colspan="12">Error loading SOP catalog.</td></tr>';return;}
+        if(error){console.error("Error loading SOP catalog:",error);catalogBody.innerHTML='<tr><td colspan="11">Error loading SOP catalog.</td></tr>';return;}
         const creatorIds=[...new Set((data||[]).map(sop=>currentSopRevision(sop)?.created_by||sop.created_by).filter(Boolean))];
         let profiles=[];
         if(creatorIds.length){
@@ -752,22 +754,21 @@ async function initializeSopPage() {
             return searchable.includes(query)&&catalogFilterConfig.every(config=>{const selected=document.getElementById(config.id)?.value;return !selected||String(config.get(sop)??"")===selected;});
         });
         const catalogBody=document.getElementById("sop-catalog-body");
-        if(!filtered.length){catalogBody.innerHTML='<tr><td colspan="12">No SOPs match the selected search and filters.</td></tr>';return;}
+        if(!filtered.length){catalogBody.innerHTML='<tr><td colspan="11">No SOPs match the selected search and filters.</td></tr>';return;}
         catalogBody.innerHTML=filtered.map(sop=>{
             const revision=sop.current_revision,status=revision?.status||"Unknown",statusClass=statusKey(status);
-            return '<tr>'+
+            return '<tr class="catalog-clickable-row" data-sop-id="'+escapeCatalogText(sop.id)+'" tabindex="0" role="button" aria-label="View SOP '+escapeCatalogText(sop.sop_code||"Unassigned")+'">'+
                 '<td>'+escapeCatalogText(formatDate(sop.created_at))+'</td>'+
+                '<td><span class="status-badge status-'+escapeCatalogText(statusClass)+'">'+escapeCatalogText(statusLabel(status))+'</span></td>'+
                 '<td>'+escapeCatalogText(sop.sop_code||"Unassigned")+'</td>'+
                 '<td>'+escapeCatalogText(sop.workshops?.name||"")+'</td>'+
                 '<td>'+escapeCatalogText(sop.process_areas?.name||"")+'</td>'+
                 '<td>'+escapeCatalogText(sop.models?.name||"")+'</td>'+
-                '<td>'+escapeCatalogText(sop.part_number||"")+'</td>'+
                 '<td>'+escapeCatalogText(sop.part_names?.name||"")+'</td>'+
+                '<td>'+escapeCatalogText(sop.part_number||"")+'</td>'+
                 '<td>'+escapeCatalogText(sop.operation_name||"")+'</td>'+
                 '<td>'+escapeCatalogText(revision?.revision_code||"")+'</td>'+
                 '<td>'+escapeCatalogText(sop.creator_name)+'</td>'+
-                '<td><span class="status-badge status-'+escapeCatalogText(statusClass)+'">'+escapeCatalogText(statusLabel(status))+'</span></td>'+
-                '<td><button type="button" class="secondary-button view-sop-button" data-sop-id="'+escapeCatalogText(sop.id)+'">View</button></td>'+
                 '</tr>';
         }).join("");
     }
@@ -1001,11 +1002,10 @@ async function initializeSopPage() {
 
 
     document.addEventListener("click", event => {
+        const catalogRow = event.target.closest("#sop-catalog-body .catalog-clickable-row");
+        if (catalogRow && !event.target.closest("button, a, input, select, textarea, label")) { viewSop(catalogRow.dataset.sopId); return; }
         const viewButton = event.target.closest(".view-sop-button");
-        if (viewButton) {
-            viewSop(viewButton.dataset.sopId);
-            return;
-        }
+        if (viewButton) { viewSop(viewButton.dataset.sopId); return; }
         const revisionButton = event.target.closest(".modal-revision-button");
         if (revisionButton) {
             const modal = document.getElementById("sop-modal");

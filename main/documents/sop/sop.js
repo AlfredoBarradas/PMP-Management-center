@@ -741,87 +741,73 @@ async function initializeSopPage() {
     });
     async function loadSopCatalog() {
         const catalogBody = document.getElementById("sop-catalog-body");
-        catalogBody.innerHTML = '<tr><td colspan="11">Loading...</td></tr>';
-        const { data, error } = await supabaseClient
-            .from("sop_documents")
-            .select(`
-                id,
-                sop_code,
-                part_number,
-                operation_name,
-                created_at,
-                workshops (
-                    name,
-                    code
-                ),
-                process_areas (
-                    name,
-                    code
-                ),
-                models (
-                    name,
-                    model_series (
-                        name,
-                        code
-                    )
-                ),
-                part_names (
-                    name,
-                    code
-                ),
-                sop_revisions (
-                    revision_number,
-                    revision_code,
-                    status,
-                    created_at,
-                    released_at
-                )
-            `)
-            .order("created_at", { ascending: false });
-        if (error) {
-            console.error("Error loading SOP catalog:", error);
-            catalogBody.innerHTML = '<tr><td colspan="11">Error loading SOP catalog.</td></tr>';
-            return;
-        }
-        if (!data || data.length === 0) {
-            catalogBody.innerHTML = '<tr><td colspan="11">No SOPs found.</td></tr>';
-            return;
-        }
-        renderSopCatalog(data);
+        catalogBody.innerHTML = '<tr><td colspan="12">Loading...</td></tr>';
+        const { data, error } = await supabaseClient.from("sop_documents").select(`
+            id,sop_code,part_number,operation_name,created_at,created_by,
+            workshops(name,code),process_areas(name,code),models(name,model_series(name,code)),part_names(name,code),
+            sop_revisions(revision_number,revision_code,status,created_at,created_by,released_at)
+        `).order("created_at", { ascending: false });
+        if (error) { console.error("Error loading SOP catalog:", error); catalogBody.innerHTML = '<tr><td colspan="12">Error loading SOP catalog.</td></tr>'; return; }
+        if (!data || data.length === 0) { catalogBody.innerHTML = '<tr><td colspan="12">No SOPs found.</td></tr>'; populateSopCatalogFilters(); return; }
+        const creatorIds = [...new Set(data.map(sop => { const revs=sop.sop_revisions||[]; const released=revs.filter(r=>String(r.status||"").toLowerCase()==="released"); const current=[...(released.length?released:revs)].sort((a,b)=>revisionNumber(b)-revisionNumber(a))[0]; return current?.created_by||sop.created_by; }).filter(Boolean))];
+        let profiles=[];
+        if (creatorIds.length) { const profileResult=await supabaseClient.from("user_profiles").select("id,full_name").in("id",creatorIds); if(profileResult.error) console.warn("Creator names unavailable in SOP catalog:",profileResult.error); else profiles=profileResult.data||[]; }
+        renderSopCatalog(data,new Map(profiles.map(profile=>[String(profile.id),profile.full_name||"Unknown"])));
+        populateSopCatalogFilters();
+        applySopCatalogFilters();
     }
-
-    function renderSopCatalog(sops) {
-        const catalogBody = document.getElementById("sop-catalog-body");
-        catalogBody.innerHTML = "";
-        sops.forEach(sop => {
-            const revisions = sop.sop_revisions || [];
-            const releasedRevisions = revisions.filter(revision => String(revision.status || "").toLowerCase() === "released");
-            const currentRevision = (releasedRevisions.length ? releasedRevisions : revisions)
-                .sort((a, b) => (Number(b.revision_number) || parseInt(String(b.revision_code || "").replace("R", ""), 10) || 0) - (Number(a.revision_number) || parseInt(String(a.revision_code || "").replace("R", ""), 10) || 0))[0];
-            const row = document.createElement("tr");
-            row.innerHTML = `
-                <td>${sop.workshops?.name || ""}</td>
-                <td>${sop.sop_code || "Unassigned"}</td>
-                <td>${sop.process_areas?.name || ""}</td>
-                <td>${sop.models?.name || ""}</td>
-                <td>${sop.part_names?.name || ""}</td>
-                <td>${sop.part_number || ""}</td>
-                <td>${sop.operation_name || ""}</td>
-                <td>${currentRevision?.revision_code || ""}</td>
-                <td>${formatDate(currentRevision?.released_at || currentRevision?.created_at || sop.created_at)}</td>
-                <td>${currentRevision?.status || ""}</td>
-                <td>
-                    <button type="button" class="secondary-button view-sop-button" data-sop-id="${sop.id}">View</button>
-                </td>
-            `;
-            catalogBody.appendChild(row);
+    function revisionNumber(revision) { return Number(revision?.revision_number)||parseInt(String(revision?.revision_code||"").replace(/\D/g,""),10)||0; }
+    function statusKey(value) { return String(value||"unknown").trim().toLowerCase().replace(/[\s-]+/g,"_"); }
+    function statusLabel(value) { const key=statusKey(value); return ({released:"Released",validation:"In Validation",in_validation:"In Validation",approval:"In Approval",in_approval:"In Approval",draft:"Draft",obsolete:"Obsolete",rejected:"Rejected"}[key]||String(value||"Unknown").replaceAll("_"," ").replace(/\b\w/g,char=>char.toUpperCase())); }
+    function renderStatusBadge(status) { return '<span class="status-badge status-' + statusKey(status) + '">' + escapeHtml(statusLabel(status)) + '</span>'; }
+    function renderRevisionBadge(code,status) { if(!code) return '<span class="revision-badge revision-unassigned">—</span>'; return '<span class="revision-badge status-' + statusKey(status) + '">' + escapeHtml(code) + '</span>'; }
+    function renderSopCatalog(sops,creatorMap=new Map()) {
+        const body=document.getElementById("sop-catalog-body"); body.innerHTML="";
+        sops.forEach(sop=>{
+            const revisions=sop.sop_revisions||[];
+            const released=revisions.filter(revision=>String(revision.status||"").toLowerCase()==="released");
+            const current=[...(released.length?released:revisions)].sort((a,b)=>revisionNumber(b)-revisionNumber(a))[0];
+            const creator=creatorMap.get(String(current?.created_by||sop.created_by))||"Unknown";
+            const status=current?.status||"Unknown";
+            const row=document.createElement("tr"); row.className="catalog-clickable-row"; row.tabIndex=0; row.setAttribute("role","button"); row.setAttribute("aria-label","View SOP "+(sop.sop_code||"Unassigned")); row.dataset.sopId=String(sop.id);
+            row.dataset.area=sop.workshops?.name||""; row.dataset.process=sop.process_areas?.name||""; row.dataset.series=sop.models?.model_series?.name||""; row.dataset.model=sop.models?.name||""; row.dataset.partName=sop.part_names?.name||""; row.dataset.createdBy=creator; row.dataset.status=statusLabel(status);
+            row.innerHTML = "<td>"+escapeHtml(formatDate(current?.released_at||current?.created_at||sop.created_at))+"</td>"+
+                "<td>"+escapeHtml(sop.sop_code||"Unassigned")+"</td>"+
+                "<td>"+escapeHtml(sop.workshops?.name||"")+"</td>"+
+                "<td>"+escapeHtml(sop.process_areas?.name||"")+"</td>"+
+                "<td>"+escapeHtml(sop.models?.name||"")+"</td>"+
+                "<td>"+escapeHtml(sop.part_number||"")+"</td>"+
+                "<td>"+escapeHtml(sop.part_names?.name||"")+"</td>"+
+                "<td>"+escapeHtml(sop.operation_name||"")+"</td>"+
+                "<td>"+renderRevisionBadge(current?.revision_code,status)+"</td>"+
+                "<td>"+escapeHtml(creator)+"</td>"+
+                "<td>"+renderStatusBadge(status)+"</td>"+
+                '<td><button type="button" class="secondary-button view-sop-button" data-sop-id="' + escapeHtml(sop.id) + '">View</button></td>';
+            body.appendChild(row);
         });
     }
-
+    function populateSopCatalogFilters() {
+        const fields=[["filter-area","area","All areas"],["filter-process","process","All processes"],["filter-series","series","All model series"],["filter-model","model","All sizes"],["filter-part-name","partName","All part names"],["filter-created-by","createdBy","All creators"],["filter-status","status","All statuses"]];
+        fields.forEach(([id,key,label])=>{const select=document.getElementById(id);if(!select)return;const previous=select.value;const values=[...new Set([...document.querySelectorAll("#sop-catalog-body tr")].map(row=>row.dataset[key]).filter(Boolean))].sort((a,b)=>a.localeCompare(b));select.innerHTML='<option value="">' + escapeHtml(label) + '</option>'+values.map(value=>'<option value="' + escapeHtml(value) + '">' + escapeHtml(value) + '</option>').join("");select.value=values.includes(previous)?previous:"";});
+    }
+    function applySopCatalogFilters() {
+        const query=(document.getElementById("sop-search-box")?.value||"").trim().toLowerCase();
+        const filters={area:document.getElementById("filter-area")?.value||"",process:document.getElementById("filter-process")?.value||"",series:document.getElementById("filter-series")?.value||"",model:document.getElementById("filter-model")?.value||"",partName:document.getElementById("filter-part-name")?.value||"",createdBy:document.getElementById("filter-created-by")?.value||"",status:document.getElementById("filter-status")?.value||""};
+        document.querySelectorAll("#sop-catalog-body tr").forEach(row=>{const textMatch=!query||row.textContent.toLowerCase().includes(query);const filterMatch=Object.entries(filters).every(([key,value])=>!value||row.dataset[key]===value);row.hidden=!(textMatch&&filterMatch);});
+    }
+    function initializeSopCatalogFilters() {
+        document.getElementById("sop-search-box")?.addEventListener("input",applySopCatalogFilters);
+        ["filter-area","filter-process","filter-series","filter-model","filter-part-name","filter-created-by","filter-status"].forEach(id=>document.getElementById(id)?.addEventListener("change",applySopCatalogFilters));
+        document.getElementById("clear-sop-filters")?.addEventListener("click",()=>{const search=document.getElementById("sop-search-box");if(search)search.value="";["filter-area","filter-process","filter-series","filter-model","filter-part-name","filter-created-by","filter-status"].forEach(id=>{const select=document.getElementById(id);if(select)select.value="";});applySopCatalogFilters();});
+        document.querySelectorAll("[data-table-search]").forEach(input=>input.addEventListener("input",()=>{const body=document.getElementById(input.dataset.tableSearch);const query=input.value.trim().toLowerCase();body?.querySelectorAll("tr").forEach(row=>row.hidden=Boolean(query)&&!row.textContent.toLowerCase().includes(query));}));
+        document.addEventListener("click",event=>{const row=event.target.closest("#sop-catalog-body .catalog-clickable-row");if(row&&!event.target.closest("button,a,input,select,textarea,label"))viewSop(row.dataset.sopId);});
+        document.addEventListener("keydown",event=>{const row=event.target.closest("#sop-catalog-body .catalog-clickable-row");if(row&&(event.key==="Enter"||event.key===" ")){event.preventDefault();viewSop(row.dataset.sopId);}});
+    }
     function formatDate(dateString) {
         if (!dateString) return "";
         return new Date(dateString).toLocaleDateString("en-US");
     }
+    initializeSopCatalogFilters();
     loadSopCatalog();
     loadMyDrafts();
     document.querySelectorAll('[data-section="sop-drafts"]').forEach(button => button.addEventListener("click", loadMyDrafts));
@@ -906,14 +892,14 @@ async function initializeSopPage() {
                     ${orderedRevisions.map(revision => `
                         <details class="sop-revision-history-item">
                             <summary>
-                                <strong>${escapeHtml(revision.revision_code || "")}</strong>
-                                <span class="sop-revision-history-status">${escapeHtml(revision.status || "")}</span>
+                                <strong>${renderRevisionBadge(revision.revision_code, revision.status)}</strong>
+                                <span class="status-badge status-${statusKey(revision.status)}">${escapeHtml(statusLabel(revision.status))}</span>
                                 <small>${escapeHtml(formatDate(revision.released_at || revision.created_at))}</small>
                             </summary>
                             <div class="sop-revision-history-details">
                                 <p><strong>Change Summary</strong></p>
                                 <p>${escapeHtml(revision.description || "No change summary recorded.")}</p>
-                                <p><strong>Status:</strong> ${escapeHtml(revision.status || "")}</p>
+                                <p><strong>Status:</strong> ${renderStatusBadge(revision.status)}</p>
                                 <p><strong>Created:</strong> ${escapeHtml(formatDate(revision.created_at))}</p>
                                 ${revision.released_at ? `<p><strong>Released:</strong> ${escapeHtml(formatDate(revision.released_at))}</p>` : ""}
                             </div>
@@ -931,7 +917,7 @@ async function initializeSopPage() {
                 </div>
                 <div class="sop-modal-field">
                     <span>Revision</span>
-                    <strong>${currentRevision?.revision_code || ""}</strong>
+                    <strong>${renderRevisionBadge(currentRevision?.revision_code, currentRevision?.status)}</strong>
                 </div>
                 <div class="sop-modal-field">
                     <span>Workshop</span>

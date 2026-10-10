@@ -477,10 +477,14 @@ async function initializeSopPage() {
         submitButton.textContent = submitForValidation ? "Submitting..." : originalSubmitText;
         try {
             if (sopMode.value === "revision") {
+                const { data: authResult, error: authError } = await supabaseClient.auth.getUser();
+                if (authError) throw authError;
+                const userId = authResult?.user?.id;
+                if (!userId) throw new Error("Please sign in again before creating a revision.");
                 const { data: revisionData, error: revisionCreateError } = await supabaseClient.rpc("create_sop_revision", {
                     p_sop_id: Number(sopId.value),
                     p_change_summary: description,
-                    p_created_by: (await supabaseClient.auth.getUser()).data?.user?.id
+                    p_created_by: userId
                 });
                 if (revisionCreateError) throw revisionCreateError;
                 const createdRevision = Array.isArray(revisionData) ? revisionData[0] : revisionData;

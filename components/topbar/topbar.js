@@ -19,7 +19,7 @@
         const pageTitle = document.getElementById("page-title");
 
         if (pageTitle) {
-            pageTitle.textContent = pageName ?? "";
+            pageTitle.textContent = document.body.dataset.pageTitle ?? pageName ?? "";
             const pageDescription = document.body.dataset.pageDescription;
             let descriptionElement = document.getElementById("page-description");
             if (pageDescription) {

@@ -54,7 +54,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         const partNameMap=new Map((partNamesResult.data||[]).map(row=>[String(row.id),row.name]));
         const peopleResult=ids.length ? await supabaseClient.rpc("get_sop_workflow_people",{p_instance_ids:ids}) : {data:[],error:null};
         if(peopleResult.error) throw peopleResult.error;
-        const profileMap=new Map((peopleResult.data||[]).map(row=>[String(row.user_id),row.full_name]));
+        const peopleRows=peopleResult.data||[];
+        const profileMap=new Map(peopleRows.map(row=>[String(row.user_id),row.full_name]));
         const taskFor=instance=>tasks.filter(task=>String(task.instance_id)===String(instance.id));
         const currentTask=instance=>taskFor(instance).find(task=>pendingStatuses.includes(String(task.status||"").toLowerCase()));
         const nodeFor=instance=>{const task=currentTask(instance);return nodeMap.get(String(task?.node_id ?? instance.current_node_id));};
@@ -69,8 +70,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         };
         const assigneeText=task=>{
             if(!task) return "—";
-            const names=assignments.filter(row=>String(row.task_id)===String(task.id)).map(row=>profileMap.get(String(row.user_id))).filter(Boolean);
-            return names.join(", ") || "Unassigned";
+            const names=peopleRows.filter(row=>String(row.workflow_id)===String(task.instance_id)&&String(row.task_id)===String(task.id)).map(row=>profileMap.get(String(row.user_id))).filter(Boolean);
+            return [...new Set(names)].join(", ") || "Unassigned";
         };
         const rows=allInstances.map(instance=>{
             const doc=docMap.get(String(instance.source_document_id)), revision=revisionMap.get(String(instance.source_revision_id)), task=currentTask(instance);
@@ -116,14 +117,15 @@ document.addEventListener("DOMContentLoaded", async () => {
             if(revResult.error)throw revResult.error;
             const peopleResult=await supabaseClient.rpc("get_sop_workflow_people",{p_instance_ids:[Number(instanceId)]});
             if(peopleResult.error)throw peopleResult.error;
-            const profileMap=new Map((peopleResult.data||[]).map(row=>[String(row.user_id),row.full_name]));
+            const peopleRows=peopleResult.data||[];
+            const profileMap=new Map(peopleRows.map(row=>[String(row.user_id),row.full_name]));
             const pendingTask=taskRows.find(row=>pendingStatuses.includes(String(row.status||"").toLowerCase()));
             const nodeResult=pendingTask?await supabaseClient.from("workflow_nodes").select("label,node_type,required_permission_code").eq("id",pendingTask.node_id).maybeSingle():{data:null,error:null};
             if(nodeResult.error)throw nodeResult.error;
             const permission=nodeResult.data?.required_permission_code;
             const canAct=Boolean(pendingTask&&permission&&hasPermission(permission)&&hasPermission("workflow.tasks.act"));
             const taskHtml=taskRows.map(task=>{
-                const names=(assignmentResult.data||[]).filter(row=>String(row.task_id)===String(task.id)).map(row=>profileMap.get(String(row.user_id))).filter(Boolean).join(", ");
+                const names=[...new Set(peopleRows.filter(row=>String(row.workflow_id)===String(instanceId)&&String(row.task_id)===String(task.id)).map(row=>profileMap.get(String(row.user_id))).filter(Boolean))].join(", ");
                 return "<tr><td>"+escapeText(task.title||nodeMapLabel(task.node_id))+"</td><td>"+escapeText(labelText(task.status))+"</td><td>"+escapeText(names||"Unassigned")+"</td><td>"+escapeText(dateText(task.created_at))+"</td><td>"+escapeText(task.completed_at?dateText(task.completed_at):"—")+"</td></tr>";
             }).join("");
             const historyHtml=(history||[]).map(item=>{

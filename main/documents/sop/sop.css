@@ -762,3 +762,18 @@
 #sop-validation .catalog-table th .column-resizer,
 #sop-approval .catalog-table th .column-resizer { display: none; }
 #sop-modal .sop-modal-actions.draft-modal-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+
+/* Keep My Drafts catalog sized to its columns instead of stretching across the page */
+#sop-drafts .catalog-table {
+    display: inline-block;
+    width: fit-content;
+    max-width: 100%;
+    vertical-align: top;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+#sop-drafts .catalog-table table {
+    width: max-content;
+    min-width: max-content;
+}

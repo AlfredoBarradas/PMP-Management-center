@@ -335,7 +335,7 @@
 .sop-modal-content {
     position: relative;
     z-index: 1;
-    width: min(800px, 90vw);
+    width: min(1500px, 90vw);
     max-height: 85vh;
     background: #fff;
     border-radius: 8px;

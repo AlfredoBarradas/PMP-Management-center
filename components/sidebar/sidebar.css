@@ -79,3 +79,82 @@
     flex: 0 0 150px;
     align-self: flex-start;
 }
+
+
+/* PMP Management Center brand palette */
+:root {
+    --pmp-primary: #00AAA6;
+    --pmp-hover: #A3DEDA;
+    --pmp-success: #A6DFCC;
+    --pmp-info: #0070C0;
+    --pmp-structure: #4D839B;
+    --pmp-attention: #C3D69B;
+    --pmp-sidebar: #123746;
+}
+.sidebar {
+    width: 224px;
+    background-color: var(--pmp-sidebar);
+    color: #F5FAFB;
+    border-right: 1px solid #244C5B;
+}
+.sidebar-header {
+    background-color: var(--pmp-sidebar);
+    border-bottom: 1px solid #244C5B;
+    justify-content: flex-start;
+    padding: 0 20px;
+}
+.sidebar-header h1 {
+    padding: 0;
+    color: #FFFFFF;
+    letter-spacing: .04em;
+}
+.sidebar-menu {
+    gap: 5px;
+    padding: 18px 12px;
+}
+.sidebar-menu a,
+.sidebar-footer a {
+    color: #DCE9ED;
+    border-radius: 8px;
+    padding: 11px 12px;
+    transition: background-color 160ms ease, color 160ms ease;
+}
+.sidebar-menu a:hover,
+.sidebar-footer a:hover {
+    background-color: rgba(163, 222, 218, .16);
+    color: #FFFFFF;
+}
+.sidebar-menu a.active,
+.sidebar-footer a.active {
+    background-color: var(--pmp-primary);
+    color: #FFFFFF;
+    box-shadow: inset 3px 0 0 var(--pmp-hover);
+}
+.sidebar-bottom .sidebar-footer {
+    border-top: 1px solid #244C5B;
+}
+.sidebar-footer button,
+#logout-button {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #315866;
+    border-radius: 8px;
+    background: transparent;
+    color: #DCE9ED;
+    text-align: left;
+    cursor: pointer;
+}
+.sidebar-footer button:hover,
+#logout-button:hover {
+    background: rgba(163, 222, 218, .16);
+    color: #FFFFFF;
+}
+#sidebar-container {
+    flex: 0 0 224px;
+    width: 224px;
+    z-index: 20;
+}
+@media (max-width: 800px) {
+    .sidebar { width: 190px; }
+    #sidebar-container { flex-basis: 190px; width: 190px; }
+}

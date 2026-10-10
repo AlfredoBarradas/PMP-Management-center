@@ -120,7 +120,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             if(docResult.error)throw docResult.error;
             const revResult=instance.source_revision_id?await supabaseClient.from("sop_revisions").select("id,revision_code,status,created_by,description,released_at").eq("id",instance.source_revision_id).maybeSingle():{data:null,error:null};
             if(revResult.error)throw revResult.error;
-            const peopleResult=await supabaseClient.rpc("get_sop_workflow_people",{p_instance_ids:[Number(instanceId)]});
+            const peopleResult=await supabaseClient.rpc("get_sop_workflow_people",{p_instance_ids:relatedInstanceIds.map(Number)});
             if(peopleResult.error)throw peopleResult.error;
             const peopleRows=peopleResult.data||[];
             const profileMap=new Map(peopleRows.map(row=>[String(row.user_id),row.full_name]));

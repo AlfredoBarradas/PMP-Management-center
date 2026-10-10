@@ -73,7 +73,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             const names=peopleRows.filter(row=>String(row.workflow_id)===String(task.instance_id)&&String(row.task_id)===String(task.id)).map(row=>profileMap.get(String(row.user_id))).filter(Boolean);
             return [...new Set(names)].join(", ") || "Unassigned";
         };
-        const rows=allInstances.map(instance=>{
+        const latestBySopRevision=new Map();
+        for(const instance of allInstances){const key=String(instance.source_document_id)+":"+String(instance.source_revision_id);const previous=latestBySopRevision.get(key);if(!previous||new Date(instance.started_at||0)>new Date(previous.started_at||0))latestBySopRevision.set(key,instance);}
+        const rows=[...latestBySopRevision.values()].map(instance=>{
             const doc=docMap.get(String(instance.source_document_id)), revision=revisionMap.get(String(instance.source_revision_id)), task=currentTask(instance);
             return {instance,doc,revision,task,stage:stageFor(instance),assignees:assigneeText(task),creator:profileMap.get(String(revision?.created_by||doc?.created_by))||"Creator profile unavailable"};
         });
@@ -103,9 +105,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         try{
             const {data:instance,error:instanceError}=await supabaseClient.from("workflow_instances").select("*").eq("id",instanceId).eq("document_type_code","sop").single();
             if(instanceError)throw instanceError;
+            const {data:siblingInstances,error:siblingError}=await supabaseClient.from("workflow_instances").select("id,source_document_id,source_revision_id,started_at").eq("document_type_code","sop").eq("source_document_id",instance.source_document_id).eq("source_revision_id",instance.source_revision_id).order("started_at",{ascending:true});
+            if(siblingError)throw siblingError;
+            const relatedInstanceIds=(siblingInstances||[]).map(row=>row.id);
             const [{data:tasks,error:taskError},{data:history,error:historyError}]=await Promise.all([
-                supabaseClient.from("workflow_tasks").select("*").eq("instance_id",instanceId).order("created_at",{ascending:true}),
-                supabaseClient.from("workflow_history").select("*").eq("instance_id",instanceId).order("created_at",{ascending:true})
+                relatedInstanceIds.length ? supabaseClient.from("workflow_tasks").select("*").in("instance_id",relatedInstanceIds).order("created_at",{ascending:true}) : Promise.resolve({data:[],error:null}),
+                relatedInstanceIds.length ? supabaseClient.from("workflow_history").select("*").in("instance_id",relatedInstanceIds).order("created_at",{ascending:true}) : Promise.resolve({data:[],error:null})
             ]);
             if(taskError)throw taskError;if(historyError)throw historyError;
             const taskRows=tasks||[], taskIds=taskRows.map(row=>row.id);
@@ -131,11 +136,13 @@ document.addEventListener("DOMContentLoaded", async () => {
             const historyHtml=(history||[]).map(item=>{
                 const detailObj=item.details||{}, actor=profileMap.get(String(item.actor_id))||"User";
                 const reason=detailObj.reason||detailObj.result?.comment||detailObj.comment;
-                return "<li><strong>"+escapeText(labelText(item.event_type))+"</strong> · "+escapeText(dateText(item.created_at))+" · "+escapeText(actor)+(item.from_status||item.to_status?" · "+escapeText(labelText(item.from_status||""))+" → "+escapeText(labelText(item.to_status||"")):"")+(reason?"<p>"+escapeText(reason)+"</p>":"")+"</li>";
+                const event=labelText(item.event_type);
+                const process=event==="SOP status changed" ? "SOP status: "+labelText(detailObj.from_status||"")+" to "+labelText(detailObj.to_status||"") : event;
+                return "<tr><td>"+escapeText(dateText(item.created_at))+"</td><td>"+escapeText(actor)+"</td><td>"+escapeText(process)+"</td><td>"+escapeText(reason||"—")+"</td></tr>";
             }).join("");
             const doc=docResult.data||{}, revision=revResult.data||{};
             const duration=dateDuration(instance.started_at,instance.completed_at);
-            detail.innerHTML="<h3>"+escapeText(doc.sop_code||"Unassigned SOP")+" · "+escapeText(revision.revision_code||"Revision unknown")+"</h3><p><strong>Workflow ID:</strong> "+escapeText(instance.id)+" · <strong>Status:</strong> "+escapeText(labelText(instance.status))+"</p><p><strong>Creator:</strong> "+escapeText(profileMap.get(String(revision.created_by||doc.created_by))||"Creator profile unavailable")+"</p><p><strong>Part No.:</strong> "+escapeText(doc.part_number||"—")+" · <strong>Operation:</strong> "+escapeText(doc.operation_name||"—")+"</p><p><strong>Submitted:</strong> "+escapeText(dateText(instance.started_at))+" · <strong>Duration:</strong> "+escapeText(duration)+(instance.completed_at?"":" (in progress)")+"</p><h4>Tasks</h4><div class='catalog-table'><table><thead><tr><th>Task</th><th>Status</th><th>Assigned To</th><th>Created</th><th>Completed</th></tr></thead><tbody>"+(taskHtml||"<tr><td colspan='5'>No tasks found.</td></tr>")+"</tbody></table></div><h4>History</h4><ul class='workflow-history-list'>"+(historyHtml||"<li>No history available.</li>")+"</ul>"+(canAct?"<div class='sop-revision-section'><label for='workflow-task-comment'>Review comments</label><textarea id='workflow-task-comment' rows='3' placeholder='Enter comments for this review'></textarea></div><div class='sop-modal-actions'><button type='button' class='danger-button' id='workflow-reject-task' data-task-id='"+escapeText(pendingTask.id)+"'>Reject and return to Draft</button><button type='button' class='primary-button' id='workflow-complete-task' data-task-id='"+escapeText(pendingTask.id)+"' data-stage='"+escapeText(permission)+"'>Complete "+escapeText(labelText(permission))+"</button></div>":pendingTask?"<p>You can view this workflow, but you do not have permission to act on its current task.</p>":"");
+            detail.innerHTML="<h3>"+escapeText(doc.sop_code||"Unassigned SOP")+" · "+escapeText(revision.revision_code||"Revision unknown")+"</h3><p><strong>Workflow ID:</strong> "+escapeText(instance.id)+" · <strong>Status:</strong> "+escapeText(labelText(instance.status))+"</p><p><strong>Creator:</strong> "+escapeText(profileMap.get(String(revision.created_by||doc.created_by))||"Creator profile unavailable")+"</p><p><strong>Part No.:</strong> "+escapeText(doc.part_number||"—")+" · <strong>Operation:</strong> "+escapeText(doc.operation_name||"—")+"</p><p><strong>Submitted:</strong> "+escapeText(dateText(instance.started_at))+" · <strong>Duration:</strong> "+escapeText(duration)+(instance.completed_at?"":" (in progress)")+"</p><h4>Tasks</h4><div class='catalog-table'><table><thead><tr><th>Task</th><th>Status</th><th>Assigned To</th><th>Created</th><th>Completed</th></tr></thead><tbody>"+(taskHtml||"<tr><td colspan='5'>No tasks found.</td></tr>")+"</tbody></table></div><h4>History</h4><div class='catalog-table workflow-history-table'><table><thead><tr><th>Date</th><th>User</th><th>Process</th><th>Comments</th></tr></thead><tbody>"+(historyHtml||"<tr><td colspan='4'>No history available.</td></tr>")+"</tbody></table></div>"+(canAct?"<div class='sop-revision-section'><label for='workflow-task-comment'>Review comments</label><textarea id='workflow-task-comment' rows='3' placeholder='Enter comments for this review'></textarea></div><div class='sop-modal-actions'><button type='button' class='danger-button' id='workflow-reject-task' data-task-id='"+escapeText(pendingTask.id)+"'>Reject and return to Draft</button><button type='button' class='primary-button' id='workflow-complete-task' data-task-id='"+escapeText(pendingTask.id)+"' data-stage='"+escapeText(permission)+"'>Complete "+escapeText(labelText(permission))+"</button></div>":pendingTask?"<p>You can view this workflow, but you do not have permission to act on its current task.</p>":"");
         }catch(error){console.error("Unable to load workflow details:",error);detail.innerHTML="<p>Unable to load workflow details. "+escapeText(error?.message||"Check access policies and the browser console.")+"</p>";}
     });
     function nodeMapLabel(nodeId){return "Task #"+nodeId;}

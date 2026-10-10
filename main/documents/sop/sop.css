@@ -1206,3 +1206,33 @@ body[data-page="SOP"] .catalog-column-resizing * {
         font-size: 11px;
     }
 }
+
+
+/* Status palette correction: Validation = yellow, Approval = blue */
+body[data-page="SOP"] .status-badge.status-validation,
+body[data-page="SOP"] .status-badge.status-in_validation,
+body[data-page="SOP"] .revision-badge.status-validation,
+body[data-page="SOP"] .revision-badge.status-in_validation {
+    background: #FFF2CC;
+    color: #8A5A00;
+    border: 1px solid #E6C96A;
+}
+body[data-page="SOP"] .status-badge.status-approval,
+body[data-page="SOP"] .status-badge.status-in_approval,
+body[data-page="SOP"] .revision-badge.status-approval,
+body[data-page="SOP"] .revision-badge.status-in_approval {
+    background: #DCEBFA;
+    color: #175A9C;
+    border: 1px solid #9FC5EE;
+}
+/* SOP Index now includes the active revision as a dedicated column */
+body[data-page="SOP"] #sop-catalog .catalog-table th:nth-child(1) { width: 8%; }
+body[data-page="SOP"] #sop-catalog .catalog-table th:nth-child(2) { width: 9%; }
+body[data-page="SOP"] #sop-catalog .catalog-table th:nth-child(3) { width: 9%; }
+body[data-page="SOP"] #sop-catalog .catalog-table th:nth-child(4) { width: 8%; }
+body[data-page="SOP"] #sop-catalog .catalog-table th:nth-child(5) { width: 8%; }
+body[data-page="SOP"] #sop-catalog .catalog-table th:nth-child(6) { width: 8%; }
+body[data-page="SOP"] #sop-catalog .catalog-table th:nth-child(7) { width: 7%; }
+body[data-page="SOP"] #sop-catalog .catalog-table th:nth-child(8) { width: 8%; }
+body[data-page="SOP"] #sop-catalog .catalog-table th:nth-child(9) { width: 10%; }
+body[data-page="SOP"] #sop-catalog .catalog-table th:nth-child(10) { width: 12%; }

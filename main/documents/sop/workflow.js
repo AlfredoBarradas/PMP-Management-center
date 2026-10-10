@@ -62,7 +62,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         if(peopleResult.error) throw peopleResult.error;
         const peopleRows=peopleResult.data||[];
         const profileMap=new Map(peopleRows.map(row=>[String(row.user_id),row.full_name]));
-        const profileIds=[...new Set([...peopleRows.map(row=>row.user_id),...docs.map(row=>row.created_by),...revisions.map(row=>row.created_by)].filter(Boolean).map(String))];
+        const profileIds=[...new Set([...peopleRows.map(row=>row.user_id),...assignments.map(row=>row.user_id),...docs.map(row=>row.created_by),...revisions.map(row=>row.created_by)].filter(Boolean).map(String))];
         const profilesResult=profileIds.length?await supabaseClient.from("user_profiles").select("id,full_name,role_id,roles(name)").in("id",profileIds):{data:[],error:null};
         if(profilesResult.error) console.warn("Workflow role names unavailable:",profilesResult.error);
         const userProfileMap=new Map((profilesResult.data||[]).map(profile=>[String(profile.id),profile.full_name||""]));

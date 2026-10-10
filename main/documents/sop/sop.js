@@ -1043,6 +1043,50 @@ async function initializeSopPage() {
             renderSopModal(sop);
             return;
         }
+        const createRevisionButton = event.target.closest("#create-revision-button");
+        if (createRevisionButton) {
+            const modal = document.getElementById("sop-modal");
+            const sop = JSON.parse(modal.dataset.sop || "null");
+            const summaryInput = document.getElementById("revision-change-summary");
+            const changeSummary = String(summaryInput?.value || "").trim();
+            if (!sop?.id) {
+                alert("Could not identify the SOP for this revision. Close the window and try again.");
+                return;
+            }
+            if (!changeSummary) {
+                summaryInput?.focus();
+                alert("Enter a Change Summary before creating the revision.");
+                return;
+            }
+            createRevisionButton.disabled = true;
+            createRevisionButton.textContent = "Creating...";
+            try {
+                const { data: authResult, error: authError } = await supabaseClient.auth.getUser();
+                if (authError) throw authError;
+                const userId = authResult?.user?.id;
+                if (!userId) throw new Error("Please sign in again before creating a revision.");
+                const { data: revisionData, error: revisionError } = await supabaseClient.rpc("create_sop_revision", {
+                    p_sop_id: Number(sop.id),
+                    p_change_summary: changeSummary,
+                    p_created_by: userId
+                });
+                if (revisionError) throw revisionError;
+                const createdRevision = Array.isArray(revisionData) ? revisionData[0] : revisionData;
+                if (!createdRevision?.revision_code) {
+                    console.error("Unexpected create_sop_revision response:", revisionData);
+                    throw new Error("Revision creation returned an unexpected response.");
+                }
+                closeSopModal();
+                await Promise.all([loadSopCatalog(), loadMyDrafts()]);
+                alert("Revision " + createdRevision.revision_code + " was created as Draft. You can find it in My Drafts to edit or submit it for validation.");
+            } catch (error) {
+                console.error("Error creating SOP revision:", error);
+                alert("Could not create the revision: " + (error?.message || "Check the browser console for details."));
+                createRevisionButton.disabled = false;
+                createRevisionButton.textContent = "Create Revision";
+            }
+            return;
+        }
     });
 
 }

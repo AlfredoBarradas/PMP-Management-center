@@ -1020,11 +1020,6 @@ async function initializeSopPage() {
             renderSopModal(sop);
             return;
         }
-        const catalogRow = event.target.closest("#sop-catalog-body tr");
-        if (catalogRow && !event.target.closest("button, a, input, select, textarea, label")) {
-            const rowViewButton = catalogRow.querySelector(".view-sop-button");
-            if (rowViewButton) viewSop(rowViewButton.dataset.sopId);
-        }
     });
 
 }

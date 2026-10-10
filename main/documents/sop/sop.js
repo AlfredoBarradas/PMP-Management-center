@@ -851,7 +851,83 @@ async function initializeSopPage() {
         if (!dateString) return "";
         return new Date(dateString).toLocaleDateString("en-US");
     }
+    function initializeCatalogColumnResizing() {
+        document.querySelectorAll("body[data-page=\"SOP\"] .catalog-table table").forEach(table => {
+            const headers = [...table.querySelectorAll("thead th")];
+            if (!headers.length || table.dataset.resizable === "true") return;
+            table.dataset.resizable = "true";
+            table.style.tableLayout = "fixed";
+            table.style.width = "100%";
+            const colgroup = document.createElement("colgroup");
+            const tableWidth = Math.max(table.getBoundingClientRect().width, 1);
+            const defaultWidths = {
+                "sop-catalog": [8, 9, 10, 8, 9, 7, 9, 10, 14],
+                "sop-drafts": [11, 10, 10, 10, 14, 13, 22],
+                "sop-validation": [9, 10, 8, 11, 12, 14, 12, 13, 11],
+                "sop-approval": [12, 12, 11, 13, 14, 14, 12],
+                "sop-workflow": [8, 9, 8, 11, 12, 13, 11, 10, 10, 8]
+            };
+            const section = table.closest(".sop-view");
+            const widths = defaultWidths[section?.id] || headers.map(() => 100 / headers.length);
+            const cols = headers.map((header, index) => {
+                const col = document.createElement("col");
+                col.style.width = ((widths[index] || 100 / headers.length) / widths.reduce((sum, width) => sum + width, 0) * 100) + "%";
+                colgroup.appendChild(col);
+                header.style.position = "relative";
+                header.style.paddingRight = "14px";
+                const handle = document.createElement("span");
+                handle.className = "column-resizer";
+                handle.setAttribute("role", "separator");
+                handle.setAttribute("aria-orientation", "vertical");
+                handle.setAttribute("aria-label", "Resize " + header.textContent.trim() + " column");
+                handle.tabIndex = 0;
+                header.appendChild(handle);
+                handle.addEventListener("pointerdown", event => {
+                    if (index >= cols.length - 1) return;
+                    event.preventDefault();
+                    event.stopPropagation();
+                    const startX = event.clientX;
+                    const leftWidth = cols[index].getBoundingClientRect().width;
+                    const rightWidth = cols[index + 1].getBoundingClientRect().width;
+                    const available = leftWidth + rightWidth;
+                    const minWidth = 64;
+                    const maxDelta = Math.min(420 - leftWidth, rightWidth - minWidth);
+                    const minDelta = Math.max(minWidth - leftWidth, rightWidth - 420);
+                    const move = moveEvent => {
+                        const delta = Math.max(minDelta, Math.min(maxDelta, moveEvent.clientX - startX));
+                        cols[index].style.width = ((leftWidth + delta) / tableWidth * 100) + "%";
+                        cols[index + 1].style.width = ((rightWidth - delta) / tableWidth * 100) + "%";
+                    };
+                    const stop = () => {
+                        window.removeEventListener("pointermove", move);
+                        window.removeEventListener("pointerup", stop);
+                        document.body.classList.remove("catalog-column-resizing");
+                    };
+                    document.body.classList.add("catalog-column-resizing");
+                    window.addEventListener("pointermove", move);
+                    window.addEventListener("pointerup", stop, { once: true });
+                });
+                handle.addEventListener("keydown", event => {
+                    if (index >= cols.length - 1 || !["ArrowLeft", "ArrowRight"].includes(event.key)) return;
+                    event.preventDefault();
+                    const leftWidth = cols[index].getBoundingClientRect().width;
+                    const rightWidth = cols[index + 1].getBoundingClientRect().width;
+                    const delta = event.key === "ArrowRight" ? 12 : -12;
+                    if (leftWidth + delta < 64 || rightWidth - delta < 64) return;
+                    cols[index].style.width = ((leftWidth + delta) / tableWidth * 100) + "%";
+                    cols[index + 1].style.width = ((rightWidth - delta) / tableWidth * 100) + "%";
+                });
+                return col;
+            });
+            table.insertBefore(colgroup, table.firstChild);
+            table.querySelectorAll("tbody td").forEach(cell => {
+                const text = cell.textContent.trim();
+                if (text && !cell.hasAttribute("title")) cell.title = text;
+            });
+        });
+    }
     initializeSopCatalogFilters();
+    initializeCatalogColumnResizing();
     loadSopCatalog();
     loadMyDrafts();
     document.querySelectorAll('[data-section="sop-drafts"]').forEach(button => button.addEventListener("click", loadMyDrafts));

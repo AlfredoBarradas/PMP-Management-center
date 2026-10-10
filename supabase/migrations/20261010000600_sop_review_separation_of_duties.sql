@@ -163,6 +163,18 @@ BEGIN
             RAISE EXCEPTION 'Missing permission: workflow.instances.start'
                 USING ERRCODE = '42501';
         END IF;
+        IF NOT EXISTS (
+            SELECT 1
+            FROM public.workflow_instances AS wi
+            WHERE wi.document_type_code = 'sop'
+              AND wi.source_document_id = NEW.sop_id
+              AND wi.source_revision_id = NEW.id
+              AND wi.status = 'in_progress'
+              AND wi.started_by = auth.uid()
+        ) THEN
+            RAISE EXCEPTION 'An active SOP workflow started by the revision creator is required for submission'
+                USING ERRCODE = '42501';
+        END IF;
     END IF;
     RETURN NEW;
 END;

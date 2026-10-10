@@ -691,7 +691,10 @@ async function initializeSopPage() {
         const viewButton = event.target.closest(".draft-view-button");
         if (viewButton) { viewSop(viewButton.dataset.sopId); return; }
         const editButton = event.target.closest(".edit-draft-button");
-        if (editButton) { openEditSop(editButton.dataset.sopId); return; }
+        if (editButton) {
+            alert("Revision information cannot be edited after the revision is created. If changes are required, delete this Draft revision and create it again with the correct information.");
+            return;
+        }
         const deleteButton = event.target.closest(".delete-draft-button");
         if (deleteButton) {
             if (!confirm("Delete this Draft SOP permanently? This action cannot be undone.")) return;
@@ -765,9 +768,11 @@ async function initializeSopPage() {
                     code
                 ),
                 sop_revisions (
+                    revision_number,
                     revision_code,
                     status,
-                    created_at
+                    created_at,
+                    released_at
                 )
             `)
             .order("created_at", { ascending: false });
@@ -788,12 +793,9 @@ async function initializeSopPage() {
         catalogBody.innerHTML = "";
         sops.forEach(sop => {
             const revisions = sop.sop_revisions || [];
-            const currentRevision = revisions
-                .sort((a, b) => {
-                    const aNumber = parseInt(a.revision_code.replace("R", ""), 10);
-                    const bNumber = parseInt(b.revision_code.replace("R", ""), 10);
-                    return bNumber - aNumber;
-                })[0];
+            const releasedRevisions = revisions.filter(revision => String(revision.status || "").toLowerCase() === "released");
+            const currentRevision = (releasedRevisions.length ? releasedRevisions : revisions)
+                .sort((a, b) => (Number(b.revision_number) || parseInt(String(b.revision_code || "").replace("R", ""), 10) || 0) - (Number(a.revision_number) || parseInt(String(a.revision_code || "").replace("R", ""), 10) || 0))[0];
             const row = document.createElement("tr");
             row.innerHTML = `
                 <td>${sop.workshops?.name || ""}</td>
@@ -804,7 +806,7 @@ async function initializeSopPage() {
                 <td>${sop.part_number || ""}</td>
                 <td>${sop.operation_name || ""}</td>
                 <td>${currentRevision?.revision_code || ""}</td>
-                <td>${formatDate(sop.created_at)}</td>
+                <td>${formatDate(currentRevision?.released_at || currentRevision?.created_at || sop.created_at)}</td>
                 <td>${currentRevision?.status || ""}</td>
                 <td>
                     <button type="button" class="secondary-button view-sop-button" data-sop-id="${sop.id}">View</button>

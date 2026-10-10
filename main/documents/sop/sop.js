@@ -942,10 +942,22 @@ async function initializeSopPage() {
                 if (error) throw error;
                 history = data || [];
             }
+            const taskIds = [...new Set(history.map(item => item.task_id).filter(Boolean))];
+            let taskNodeMap = new Map();
+            if (taskIds.length) {
+                const { data: tasks, error: taskError } = await supabaseClient.from("workflow_tasks").select("id,node_id").in("id", taskIds);
+                if (taskError) throw taskError;
+                const nodeIds = [...new Set((tasks || []).map(task => task.node_id).filter(Boolean))];
+                const { data: nodes, error: nodeError } = nodeIds.length ? await supabaseClient.from("workflow_nodes").select("id,label,node_type").in("id", nodeIds) : { data: [], error: null };
+                if (nodeError) throw nodeError;
+                const nodeMap = new Map((nodes || []).map(node => [String(node.id), node]));
+                taskNodeMap = new Map((tasks || []).map(task => [String(task.id), nodeMap.get(String(task.node_id)) || {}]));
+            }
             const events = history.map(item => {
-                const raw = String(item.event_type || item.to_status || "Workflow update").toLowerCase().replace(/[_-]+/g, " ");
-                const label = raw.includes("validat") ? "Validated" : raw.includes("reject") ? "Rejected" : raw.includes("complet") || raw.includes("finish") || raw.includes("release") ? "Completed" : raw.replace(/\b\w/g, char => char.toUpperCase());
-                return { label, date: item.created_at, details: item.details || {} };
+                const node = taskNodeMap.get(String(item.task_id)) || {};
+                const raw = [node.label, item.event_type, item.to_status].filter(Boolean).join(" ").toLowerCase().replace(/[_-]+/g, " ");
+                const label = raw.includes("validat") ? "Validated" : raw.includes("reject") ? "Rejected" : raw.includes("approv") ? "Approved" : raw.includes("complet") || raw.includes("finish") || raw.includes("release") ? "Completed" : raw.replace(/\b\w/g, char => char.toUpperCase());
+                return { label: label || "Workflow update", date: item.created_at, details: item.details || {} };
             });
             (instances || []).forEach(item => {
                 const status = String(item.status || "").toLowerCase();

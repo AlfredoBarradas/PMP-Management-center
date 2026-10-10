@@ -845,6 +845,7 @@ async function initializeSopPage() {
                     code
                 ),
                 sop_revisions (
+                    id,
                     revision_number,
                     created_by,
                     revision_code,
@@ -1049,7 +1050,15 @@ function initializeResizableCatalogColumns() {
         if (table.dataset.columnsResizable === "true") return;
         const headers = [...table.querySelectorAll("thead th")];
         if (!headers.length || table.getBoundingClientRect().width < 1) return;
-        const sectionId = table.closest(".sop-section")?.id || (table.closest(".sop-catalog") ? "sop-catalog" : "");
+        const sectionId = table.closest(".sop-catalog") ? "sop-catalog" : (table.closest(".sop-section")?.id || "");
+        const validationTable = ["sop-validation", "sop-approval"].includes(sectionId);
+        if (validationTable) {
+            table.style.width = "100%";
+            table.style.minWidth = "0";
+            table.style.tableLayout = "fixed";
+            table.dataset.columnsResizable = "true";
+            return;
+        }
         const configuredWidths = staticWidths[sectionId];
         const widths = headers.map((header, index) => configuredWidths?.[index] || Math.max(80, Math.round(header.getBoundingClientRect().width)));
         headers.forEach((header, index) => {
@@ -1089,9 +1098,8 @@ function initializeResizableCatalogColumns() {
                 document.addEventListener("pointercancel", stop, {once: true});
             });
         });
-        const validationTable = ["sop-validation", "sop-approval"].includes(sectionId);
-        table.style.width = validationTable ? "100%" : widths.reduce((sum, value) => sum + value, 0) + "px";
-        table.style.minWidth = validationTable ? "0" : widths.reduce((sum, value) => sum + value, 0) + "px";
+        table.style.width = widths.reduce((sum, value) => sum + value, 0) + "px";
+        table.style.minWidth = widths.reduce((sum, value) => sum + value, 0) + "px";
         table.dataset.columnsResizable = "true";
     });
 }

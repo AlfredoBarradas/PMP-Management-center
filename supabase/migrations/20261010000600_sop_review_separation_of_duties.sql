@@ -1,6 +1,7 @@
 -- Enforce separation of duties for SOP review at the database layer.
--- A revision creator cannot validate or approve their own revision.
+-- A revision creator cannot perform review actions on their own revision.
 -- The same user cannot both validate and approve the same revision.
+-- Assigned workflow tasks can only be acted on by an assigned user.
 BEGIN;
 
 CREATE OR REPLACE FUNCTION public.enforce_sop_review_separation_of_duties()
@@ -21,6 +22,25 @@ BEGIN
        OR NEW.status NOT IN ('completed', 'rejected')
        OR OLD.status IN ('completed', 'rejected') THEN
         RETURN NEW;
+    END IF;
+
+    IF auth.uid() IS NULL THEN
+        RAISE EXCEPTION 'Authentication required to act on a workflow task'
+            USING ERRCODE = '42501';
+    END IF;
+
+    IF EXISTS (
+        SELECT 1
+        FROM public.workflow_task_assignees AS assigned
+        WHERE assigned.task_id = NEW.id
+    ) AND NOT EXISTS (
+        SELECT 1
+        FROM public.workflow_task_assignees AS assigned
+        WHERE assigned.task_id = NEW.id
+          AND assigned.user_id = auth.uid()
+    ) THEN
+        RAISE EXCEPTION 'Only a user assigned to this workflow task can complete or reject it'
+            USING ERRCODE = '42501';
     END IF;
 
     SELECT wi.id,
@@ -56,7 +76,7 @@ BEGIN
     END IF;
 
     IF auth.uid() IS NOT NULL AND v_revision_creator = auth.uid() THEN
-        RAISE EXCEPTION 'Separation of duties: the revision creator cannot validate or approve their own SOP'
+        RAISE EXCEPTION 'Separation of duties: the revision creator cannot perform review actions on their own SOP'
             USING ERRCODE = '42501';
     END IF;
 

@@ -1084,3 +1084,125 @@ body[data-page="SOP"] .catalog-table th {
     border-left: 0;
     border-right: 0;
 }
+
+
+/* Catalog sizing and column-resize behavior */
+body[data-page="SOP"] .sop-view {
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+}
+body[data-page="SOP"] .catalog-table {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: hidden !important;
+    overflow-y: visible;
+}
+body[data-page="SOP"] .catalog-table table {
+    width: 100%;
+    min-width: 0 !important;
+    max-width: 100%;
+    table-layout: fixed;
+}
+body[data-page="SOP"] .catalog-table th,
+body[data-page="SOP"] .catalog-table td {
+    min-width: 64px;
+    max-width: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    overflow-wrap: normal;
+    word-break: normal;
+    vertical-align: middle;
+}
+body[data-page="SOP"] .catalog-table th {
+    position: relative;
+    padding-right: 14px;
+}
+body[data-page="SOP"] .catalog-table th .column-resizer {
+    position: absolute;
+    z-index: 2;
+    top: 0;
+    right: -1px;
+    width: 7px;
+    height: 100%;
+    cursor: col-resize;
+    touch-action: none;
+    user-select: none;
+    background: transparent;
+}
+body[data-page="SOP"] .catalog-table th .column-resizer:hover,
+body[data-page="SOP"] .catalog-table th .column-resizer:focus-visible {
+    background: var(--pmp-primary, #00AAA6);
+    outline: none;
+}
+body[data-page="SOP"] .catalog-table th:last-child .column-resizer {
+    display: none;
+}
+body[data-page="SOP"] .catalog-table th .column-resizer::after {
+    content: "";
+    position: absolute;
+    top: 25%;
+    bottom: 25%;
+    left: 3px;
+    width: 1px;
+    background: #8FAEB5;
+}
+body[data-page="SOP"] .catalog-table th .column-resizer:hover::after,
+body[data-page="SOP"] .catalog-table th .column-resizer:focus-visible::after {
+    background: #FFFFFF;
+}
+body[data-page="SOP"] .catalog-table tbody td {
+    padding-top: 11px;
+    padding-bottom: 11px;
+}
+body[data-page="SOP"] .catalog-table tbody td button,
+body[data-page="SOP"] .catalog-table tbody td .status-badge,
+body[data-page="SOP"] .catalog-table tbody td .revision-badge {
+    max-width: 100%;
+}
+body[data-page="SOP"] .catalog-table tbody tr[hidden] {
+    display: none !important;
+}
+body[data-page="SOP"] .catalog-table tbody tr:hover td {
+    background: transparent;
+}
+body[data-page="SOP"] .catalog-table tbody tr:hover {
+    background: #E1F4F3;
+}
+body[data-page="SOP"] .catalog-table tbody tr.catalog-clickable-row {
+    cursor: pointer;
+}
+body[data-page="SOP"] .catalog-table tbody tr.catalog-clickable-row:focus-visible {
+    outline: 2px solid var(--pmp-primary, #00AAA6);
+    outline-offset: -2px;
+}
+body[data-page="SOP"] .content,
+body[data-page="SOP"] .sop-section,
+body[data-page="SOP"] .catalog-table,
+body[data-page="SOP"] .catalog-table table {
+    box-sizing: border-box;
+}
+body[data-page="SOP"] .sop-section .section-header,
+body[data-page="SOP"] .sop-section .catalog-search,
+body[data-page="SOP"] .sop-section .catalog-filters {
+    max-width: 100%;
+}
+body[data-page="SOP"] .catalog-table th .column-resizer {
+    cursor: col-resize;
+}
+body[data-page="SOP"] .catalog-column-resizing,
+body[data-page="SOP"] .catalog-column-resizing * {
+    cursor: col-resize !important;
+    user-select: none !important;
+}
+@media (max-width: 900px) {
+    body[data-page="SOP"] .catalog-table th,
+    body[data-page="SOP"] .catalog-table td {
+        min-width: 64px;
+        padding-left: 6px;
+        padding-right: 8px;
+        font-size: 11px;
+    }
+}

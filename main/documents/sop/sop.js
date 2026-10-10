@@ -1019,12 +1019,35 @@ async function initializeSopPage() {
         if (createRevisionButton) {
             const sopId = Number(createRevisionButton.dataset.sopId);
             const changeSummary = document.getElementById("revision-change-summary")?.value.trim() || "";
+            const fileInput = document.getElementById("revision-file");
+            const file = fileInput?.files?.[0];
             if (!changeSummary) {
                 alert("Enter a Change Summary before creating the revision.");
                 document.getElementById("revision-change-summary")?.focus();
                 return;
             }
-            if (!confirm("Create the next Draft revision for this SOP?")) return;
+            if (!file) {
+                alert("Select the updated SOP file before creating the revision.");
+                fileInput?.focus();
+                return;
+            }
+            if (file.size === 0 || file.size > 20 * 1024 * 1024) {
+                alert("Select a file between 1 byte and 20 MB.");
+                return;
+            }
+            const fileTypes = {
+                ".pdf": "application/pdf",
+                ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                ".xls": "application/vnd.ms-excel",
+                ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                ".doc": "application/msword"
+            };
+            const extension = "." + (file.name.split(".").pop() || "").toLowerCase();
+            if (!fileTypes[extension] || (file.type && file.type !== fileTypes[extension])) {
+                alert("Unsupported file type. Select a PDF, Excel, or Word document.");
+                return;
+            }
+            if (!confirm("Create the next Draft revision and upload its file to Google Drive?")) return;
             createRevisionButton.disabled = true;
             const originalText = createRevisionButton.textContent;
             createRevisionButton.textContent = "Creating...";
@@ -1036,7 +1059,22 @@ async function initializeSopPage() {
                 if (error) throw error;
                 const created = Array.isArray(data) ? data[0] : data;
                 if (!created?.revision_code) throw new Error("Revision creation returned an unexpected response.");
-                alert("Revision " + created.revision_code + " created as Draft. Open the draft to edit it and submit it for validation.");
+                const { data: revision, error: revisionError } = await supabaseClient
+                    .from("sop_revisions")
+                    .select("id")
+                    .eq("sop_id", sopId)
+                    .eq("revision_code", created.revision_code)
+                    .single();
+                if (revisionError) throw new Error("Revision was created, but its ID could not be retrieved: " + revisionError.message);
+                const uploadForm = new FormData();
+                uploadForm.append("sop_id", String(sopId));
+                uploadForm.append("revision_id", String(revision.id));
+                uploadForm.append("file", file, file.name);
+                const { data: uploadResult, error: uploadError } = await supabaseClient.functions.invoke("sop-drive-file", { body: uploadForm });
+                if (uploadError) throw new Error("Revision " + created.revision_code + " was created, but Google Drive upload failed: " + uploadError.message);
+                if (!uploadResult?.success) throw new Error(uploadResult?.error || "Google Drive did not confirm the upload.");
+                alert("Revision " + created.revision_code + " created as Draft and its file was uploaded to Google Drive.");
+
                 await loadSopCatalog();
                 await loadMyDrafts();
                 await viewSop(sopId);

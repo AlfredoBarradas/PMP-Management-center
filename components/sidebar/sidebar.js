@@ -66,6 +66,7 @@
     function applySidebarPermissions() {
         const permissionMap = {
             "Documents": ["SOP", "Layout", "TI", "MDR"],
+            "SOP": ["SOP"],
             "Losstime": ["Losstime"],
             "Efficiency": ["Efficiency"],
             "Scrap": ["Scrap"],

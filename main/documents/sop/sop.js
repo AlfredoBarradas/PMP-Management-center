@@ -69,6 +69,7 @@ async function initializeSopPage() {
         sections.forEach(section => section.classList.add("hidden"));
         const targetSection = document.getElementById(sectionId);
         if (targetSection) targetSection.classList.remove("hidden");
+        initializeResizableCatalogColumns();
         if (sectionId === "sop-control") {
             refreshWorkflowCounts();
             loadMyDrafts();
@@ -622,7 +623,7 @@ async function initializeSopPage() {
             }
             const { data: documents, error: documentError } = await supabaseClient
                 .from("sop_documents")
-                .select("id,sop_code,part_number,operation_name,created_at,created_by,models(name),part_names(name),sop_revisions(id,revision_code,revision_number,status,created_at,created_by,description)")
+                .select("id,sop_code,part_number,operation_name,created_at,created_by,workshops(name),process_areas(name),models(name),part_names(name),sop_revisions(id,revision_code,revision_number,status,created_at,created_by,description)")
                 .eq("created_by", userId)
                 .order("created_at", { ascending: false });
             if (documentError) throw documentError;
@@ -632,7 +633,7 @@ async function initializeSopPage() {
                 .sort((a,b) => new Date(b.revision.created_at || b.doc.created_at) - new Date(a.revision.created_at || a.doc.created_at));
             setMyDraftsCount(drafts.length);
             if (!drafts.length) { body.innerHTML = '<tr><td colspan="8">You have no draft SOPs.</td></tr>'; return; }
-            body.innerHTML = drafts.map(item => '<tr><td>' + escapeHtml(item.doc.sop_code || "Unassigned") + '</td><td>' + escapeHtml(item.doc.models?.name || "") + '</td><td>' + escapeHtml(item.doc.part_names?.name || "") + '</td><td>' + escapeHtml(item.doc.part_number || "") + '</td><td>' + escapeHtml(item.doc.operation_name || "") + '</td><td>' + escapeHtml(item.revision.revision_code || "") + '</td><td>' + escapeHtml(formatDate(item.revision.created_at || item.doc.created_at)) + '</td><td class="table-actions"><button type="button" class="secondary-button draft-view-button" data-sop-id="' + escapeHtml(item.doc.id) + '">View</button><button type="button" class="secondary-button edit-draft-button" data-sop-id="' + escapeHtml(item.doc.id) + '">Edit</button><button type="button" class="primary-button draft-submit-button" data-sop-id="' + escapeHtml(item.doc.id) + '" data-revision-id="' + escapeHtml(item.revision.id) + '" data-sop-code="' + escapeHtml(item.doc.sop_code || "Unassigned") + '" data-revision-code="' + escapeHtml(item.revision.revision_code) + '">Submit</button><button type="button" class="danger-button delete-draft-button" data-sop-id="' + escapeHtml(item.doc.id) + '">Delete</button></td></tr>').join("");
+            body.innerHTML = drafts.map(item => '<tr class="catalog-clickable-row" data-sop-id="' + escapeHtml(item.doc.id) + '" tabindex="0" role="button" aria-label="View SOP ' + escapeHtml(item.doc.sop_code || "Unassigned") + '"><td>' + escapeHtml(formatDate(item.revision.created_at || item.doc.created_at)) + '</td><td>' + escapeHtml(item.doc.sop_code || "Unassigned") + '</td><td>' + escapeHtml(item.doc.workshops?.name || "—") + '</td><td>' + escapeHtml(item.doc.process_areas?.name || "—") + '</td><td>' + escapeHtml(item.doc.models?.name || "—") + '</td><td>' + escapeHtml(item.doc.part_names?.name || "—") + '</td><td>' + escapeHtml(item.doc.part_number || "—") + '</td><td>' + escapeHtml(item.doc.operation_name || "—") + '</td></tr>').join("");
         } catch (error) {
             console.error("Error loading My Drafts:", error);
             const counter = document.getElementById("my-drafts-count");
@@ -644,6 +645,8 @@ async function initializeSopPage() {
         return String(value ?? "").replace(/[&<>"']/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
     }
     document.addEventListener("click", async event => {
+        const draftRow = event.target.closest("#sop-drafts-body .catalog-clickable-row");
+        if (draftRow && !event.target.closest("button, a, input, select, textarea, label")) { viewSop(draftRow.dataset.sopId); return; }
         const viewButton = event.target.closest(".draft-view-button");
         if (viewButton) { viewSop(viewButton.dataset.sopId); return; }
         const editButton = event.target.closest(".edit-draft-button");
@@ -708,7 +711,7 @@ async function initializeSopPage() {
     }
     async function loadSopCatalog() {
         const catalogBody = document.getElementById("sop-catalog-body");
-        catalogBody.innerHTML = '<tr><td colspan="12">Loading...</td></tr>';
+        catalogBody.innerHTML = '<tr><td colspan="11">Loading...</td></tr>';
         const {data,error}=await supabaseClient.from("sop_documents").select(`
             id,sop_code,part_number,operation_name,created_at,created_by,
             workshops(name,code),process_areas(name,code),
@@ -716,7 +719,7 @@ async function initializeSopPage() {
             part_names(name,code),
             sop_revisions(id,revision_number,revision_code,status,created_at,created_by)
         `).order("created_at",{ascending:false});
-        if(error){console.error("Error loading SOP catalog:",error);catalogBody.innerHTML='<tr><td colspan="12">Error loading SOP catalog.</td></tr>';return;}
+        if(error){console.error("Error loading SOP catalog:",error);catalogBody.innerHTML='<tr><td colspan="11">Error loading SOP catalog.</td></tr>';return;}
         const creatorIds=[...new Set((data||[]).map(sop=>currentSopRevision(sop)?.created_by||sop.created_by).filter(Boolean))];
         let profiles=[];
         if(creatorIds.length){
@@ -752,22 +755,21 @@ async function initializeSopPage() {
             return searchable.includes(query)&&catalogFilterConfig.every(config=>{const selected=document.getElementById(config.id)?.value;return !selected||String(config.get(sop)??"")===selected;});
         });
         const catalogBody=document.getElementById("sop-catalog-body");
-        if(!filtered.length){catalogBody.innerHTML='<tr><td colspan="12">No SOPs match the selected search and filters.</td></tr>';return;}
+        if(!filtered.length){catalogBody.innerHTML='<tr><td colspan="11">No SOPs match the selected search and filters.</td></tr>';return;}
         catalogBody.innerHTML=filtered.map(sop=>{
             const revision=sop.current_revision,status=revision?.status||"Unknown",statusClass=statusKey(status);
-            return '<tr>'+
+            return '<tr class="catalog-clickable-row" data-sop-id="'+escapeCatalogText(sop.id)+'" tabindex="0" role="button" aria-label="View SOP '+escapeCatalogText(sop.sop_code||"Unassigned")+'">'+
                 '<td>'+escapeCatalogText(formatDate(sop.created_at))+'</td>'+
+                '<td><span class="status-badge status-'+escapeCatalogText(statusClass)+'">'+escapeCatalogText(statusLabel(status))+'</span></td>'+
                 '<td>'+escapeCatalogText(sop.sop_code||"Unassigned")+'</td>'+
                 '<td>'+escapeCatalogText(sop.workshops?.name||"")+'</td>'+
                 '<td>'+escapeCatalogText(sop.process_areas?.name||"")+'</td>'+
                 '<td>'+escapeCatalogText(sop.models?.name||"")+'</td>'+
-                '<td>'+escapeCatalogText(sop.part_number||"")+'</td>'+
                 '<td>'+escapeCatalogText(sop.part_names?.name||"")+'</td>'+
+                '<td>'+escapeCatalogText(sop.part_number||"")+'</td>'+
                 '<td>'+escapeCatalogText(sop.operation_name||"")+'</td>'+
                 '<td>'+escapeCatalogText(revision?.revision_code||"")+'</td>'+
                 '<td>'+escapeCatalogText(sop.creator_name)+'</td>'+
-                '<td><span class="status-badge status-'+escapeCatalogText(statusClass)+'">'+escapeCatalogText(statusLabel(status))+'</span></td>'+
-                '<td><button type="button" class="secondary-button view-sop-button" data-sop-id="'+escapeCatalogText(sop.id)+'">View</button></td>'+
                 '</tr>';
         }).join("");
     }
@@ -818,6 +820,7 @@ async function initializeSopPage() {
             .from("sop_documents")
             .select(`
                 id,
+                created_by,
                 sop_code,
                 part_number,
                 operation_name,
@@ -842,7 +845,9 @@ async function initializeSopPage() {
                     code
                 ),
                 sop_revisions (
+                    id,
                     revision_number,
+                    created_by,
                     revision_code,
                     description,
                     status,
@@ -857,6 +862,8 @@ async function initializeSopPage() {
             modalBody.innerHTML = "<p>Error loading SOP information.</p>";
             return;
         }
+        const { data: currentUserData } = await supabaseClient.auth.getUser();
+        document.getElementById("sop-modal").dataset.currentUserId = currentUserData?.user?.id || "";
         renderSopModal(data);
         document.getElementById("sop-modal").dataset.sop = JSON.stringify(data);
     }
@@ -913,6 +920,13 @@ async function initializeSopPage() {
                     <span>Description</span>
                     <p>${currentRevision?.description || ""}</p>
                 </div>
+                ${String(currentRevision?.status || "").toLowerCase() === "draft" && String(currentRevision?.created_by || sop.created_by) === String(document.getElementById("sop-modal").dataset.currentUserId || "") ? `
+                    <div class="sop-modal-actions draft-modal-actions">
+                        <button type="button" class="secondary-button edit-draft-button" data-sop-id="${sop.id}">Edit</button>
+                        <button type="button" class="danger-button delete-draft-button" data-sop-id="${sop.id}">Delete</button>
+                        <button type="button" class="primary-button draft-submit-button" data-sop-id="${sop.id}" data-revision-id="${currentRevision.id}" data-sop-code="${sop.sop_code || "Unassigned"}" data-revision-code="${currentRevision.revision_code || ""}">Submit for Validation</button>
+                    </div>
+                ` : ""}
                 ${String(currentRevision?.status || "").toLowerCase() === "released" ? `
                     <div class="sop-modal-actions">
                         <button type="button" class="remark-button modal-revision-button" data-sop-id="${sop.id}">
@@ -1001,11 +1015,10 @@ async function initializeSopPage() {
 
 
     document.addEventListener("click", event => {
+        const catalogRow = event.target.closest("#sop-catalog-body .catalog-clickable-row");
+        if (catalogRow && !event.target.closest("button, a, input, select, textarea, label")) { viewSop(catalogRow.dataset.sopId); return; }
         const viewButton = event.target.closest(".view-sop-button");
-        if (viewButton) {
-            viewSop(viewButton.dataset.sopId);
-            return;
-        }
+        if (viewButton) { viewSop(viewButton.dataset.sopId); return; }
         const revisionButton = event.target.closest(".modal-revision-button");
         if (revisionButton) {
             const modal = document.getElementById("sop-modal");
@@ -1020,11 +1033,84 @@ async function initializeSopPage() {
             renderSopModal(sop);
             return;
         }
-        const catalogRow = event.target.closest("#sop-catalog-body tr");
-        if (catalogRow && !event.target.closest("button, a, input, select, textarea, label")) {
-            const rowViewButton = catalogRow.querySelector(".view-sop-button");
-            if (rowViewButton) viewSop(rowViewButton.dataset.sopId);
-        }
     });
 
 }
+
+
+function initializeResizableCatalogColumns() {
+    const staticWidths = {
+        "sop-catalog": [110, 130, 145, 110, 125, 105, 130, 125, 190, 90, 130],
+        "sop-drafts": [110, 150, 130, 130, 110, 145, 130, 210],
+        "sop-validation": [95, 105, 85, 105, 95, 125, 115, 105, 130],
+        "sop-approval": [95, 105, 85, 105, 95, 125, 115, 105, 130],
+        "sop-workflow": [95, 105, 85, 105, 95, 125, 115, 110, 105, 100]
+    };
+    document.querySelectorAll(".catalog-table table").forEach(table => {
+        if (table.dataset.columnsResizable === "true") return;
+        const headers = [...table.querySelectorAll("thead th")];
+        if (!headers.length || table.getBoundingClientRect().width < 1) return;
+        const sectionId = table.closest(".sop-catalog") ? "sop-catalog" : (table.closest(".sop-section")?.id || "");
+        const responsiveCatalog = sectionId === "sop-catalog";
+        const validationTable = ["sop-validation", "sop-approval"].includes(sectionId);
+        if (responsiveCatalog || validationTable) {
+            table.style.width = "100%";
+            table.style.minWidth = "0";
+            table.style.maxWidth = "100%";
+            table.style.tableLayout = "fixed";
+            table.dataset.columnsResizable = "true";
+            return;
+        }
+        const configuredWidths = staticWidths[sectionId];
+        const widths = headers.map((header, index) => configuredWidths?.[index] || Math.max(80, Math.round(header.getBoundingClientRect().width)));
+        headers.forEach((header, index) => {
+            header.style.width = widths[index] + "px";
+            [...table.rows].forEach(row => {
+                if (row.cells[index]) row.cells[index].style.width = widths[index] + "px";
+            });
+            header.style.position = "sticky";
+            const handle = document.createElement("span");
+            handle.className = "column-resizer";
+            handle.setAttribute("aria-hidden", "true");
+            header.appendChild(handle);
+            handle.addEventListener("pointerdown", event => {
+                event.preventDefault();
+                event.stopPropagation();
+                const startX = event.clientX;
+                const startWidth = header.getBoundingClientRect().width;
+                const tableWidth = table.getBoundingClientRect().width;
+                const parentWidth = table.parentElement?.clientWidth || tableWidth;
+                handle.setPointerCapture?.(event.pointerId);
+                const move = moveEvent => {
+                    const width = Math.max(60, Math.min(420, Math.round(startWidth + moveEvent.clientX - startX)));
+                    header.style.width = width + "px";
+                    [...table.rows].forEach(row => {
+                        if (row.cells[index]) row.cells[index].style.width = width + "px";
+                    });
+                    const currentWidths = headers.map(cell => Math.max(60, Math.round(cell.getBoundingClientRect().width)));
+                    table.style.width = Math.max(parentWidth, currentWidths.reduce((sum, value) => sum + value, 0)) + "px";
+                };
+                const stop = () => {
+                    document.removeEventListener("pointermove", move);
+                    document.removeEventListener("pointerup", stop);
+                    document.removeEventListener("pointercancel", stop);
+                };
+                document.addEventListener("pointermove", move);
+                document.addEventListener("pointerup", stop, {once: true});
+                document.addEventListener("pointercancel", stop, {once: true});
+            });
+        });
+        table.style.width = widths.reduce((sum, value) => sum + value, 0) + "px";
+        table.style.minWidth = widths.reduce((sum, value) => sum + value, 0) + "px";
+        table.dataset.columnsResizable = "true";
+    });
+}
+document.addEventListener("DOMContentLoaded", initializeResizableCatalogColumns);
+document.addEventListener("keydown", event => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    const row = event.target.closest("tr.catalog-clickable-row, tr.workflow-row");
+    if (!row || event.target !== row) return;
+    event.preventDefault();
+    if (row.dataset.sopId) viewSop(row.dataset.sopId);
+    else if (row.dataset.instanceId) row.click();
+});

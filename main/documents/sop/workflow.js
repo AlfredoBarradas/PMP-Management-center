@@ -14,9 +14,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     };
     const message = (body, count, text) => { body.innerHTML = '<tr><td colspan="'+count+'">'+escapeText(text)+'</td></tr>'; };
     const pendingStatuses = ["pending","assigned","in_progress"];
-    message(validationBody,7,"Loading validation tasks...");
-    message(approvalBody,7,"Loading approval tasks...");
-    message(workflowBody,6,"Loading SOP workflow history...");
+    message(validationBody,9,"Loading validation tasks...");
+    message(approvalBody,9,"Loading approval tasks...");
+    message(workflowBody,10,"Loading SOP workflow history...");
     try {
         const {data: instances,error: instanceError}=await supabaseClient.from("workflow_instances").select("*").eq("document_type_code","sop").order("started_at",{ascending:false});
         if(instanceError) throw instanceError;
@@ -34,7 +34,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const docIds=[...new Set(allInstances.map(row=>row.source_document_id).filter(Boolean))];
         const revisionIds=[...new Set(allInstances.map(row=>row.source_revision_id).filter(Boolean))];
         const [docResult,revisionResult,assignmentResult]=await Promise.all([
-            docIds.length ? supabaseClient.from("sop_documents").select("id,sop_code,sop_number,part_number,operation_name,created_by,model_id,part_name_id").in("id",docIds) : Promise.resolve({data:[],error:null}),
+            docIds.length ? supabaseClient.from("sop_documents").select("id,sop_code,sop_number,part_number,operation_name,created_by,model_id,part_name_id,workshop_id,process_area_id").in("id",docIds) : Promise.resolve({data:[],error:null}),
             revisionIds.length ? supabaseClient.from("sop_revisions").select("id,sop_id,revision_code,status,created_at,created_by,released_at,description").in("id",revisionIds) : Promise.resolve({data:[],error:null}),
             tasks.length ? supabaseClient.from("workflow_task_assignees").select("task_id,user_id").in("task_id",tasks.map(row=>row.id)) : Promise.resolve({data:[],error:null})
         ]);
@@ -42,20 +42,31 @@ document.addEventListener("DOMContentLoaded", async () => {
         if(revisionResult.error) throw revisionResult.error;
         if(assignmentResult.error) throw assignmentResult.error;
         const docs=docResult.data||[], revisions=revisionResult.data||[], assignments=assignmentResult.data||[];
-        const modelIds=[...new Set(docs.map(row=>row.model_id).filter(Boolean))], partNameIds=[...new Set(docs.map(row=>row.part_name_id).filter(Boolean))];
-        const [modelsResult,partNamesResult]=await Promise.all([
+        const modelIds=[...new Set(docs.map(row=>row.model_id).filter(Boolean))], partNameIds=[...new Set(docs.map(row=>row.part_name_id).filter(Boolean))], workshopIds=[...new Set(docs.map(row=>row.workshop_id).filter(Boolean))], processAreaIds=[...new Set(docs.map(row=>row.process_area_id).filter(Boolean))];
+        const [modelsResult,partNamesResult,workshopsResult,processAreasResult]=await Promise.all([
             modelIds.length ? supabaseClient.from("models").select("id,name").in("id",modelIds) : Promise.resolve({data:[],error:null}),
-            partNameIds.length ? supabaseClient.from("part_names").select("id,name").in("id",partNameIds) : Promise.resolve({data:[],error:null})
+            partNameIds.length ? supabaseClient.from("part_names").select("id,name").in("id",partNameIds) : Promise.resolve({data:[],error:null}),
+            workshopIds.length ? supabaseClient.from("workshops").select("id,name").in("id",workshopIds) : Promise.resolve({data:[],error:null}),
+            processAreaIds.length ? supabaseClient.from("process_areas").select("id,name").in("id",processAreaIds) : Promise.resolve({data:[],error:null})
         ]);
         if(modelsResult.error) throw modelsResult.error;
         if(partNamesResult.error) throw partNamesResult.error;
+        if(workshopsResult.error) throw workshopsResult.error;
+        if(processAreasResult.error) throw processAreasResult.error;
         const docMap=new Map(docs.map(row=>[String(row.id),row])), revisionMap=new Map(revisions.map(row=>[String(row.id),row]));
         const modelMap=new Map((modelsResult.data||[]).map(row=>[String(row.id),row.name]));
         const partNameMap=new Map((partNamesResult.data||[]).map(row=>[String(row.id),row.name]));
+        const workshopMap=new Map((workshopsResult.data||[]).map(row=>[String(row.id),row.name]));
+        const processAreaMap=new Map((processAreasResult.data||[]).map(row=>[String(row.id),row.name]));
         const peopleResult=ids.length ? await supabaseClient.rpc("get_sop_workflow_people",{p_instance_ids:ids}) : {data:[],error:null};
         if(peopleResult.error) throw peopleResult.error;
         const peopleRows=peopleResult.data||[];
         const profileMap=new Map(peopleRows.map(row=>[String(row.user_id),row.full_name]));
+        const profileIds=[...new Set([...peopleRows.map(row=>row.user_id),...assignments.map(row=>row.user_id),...docs.map(row=>row.created_by),...revisions.map(row=>row.created_by)].filter(Boolean).map(String))];
+        const profilesResult=profileIds.length?await supabaseClient.from("user_profiles").select("id,full_name,role_id,roles(name)").in("id",profileIds):{data:[],error:null};
+        if(profilesResult.error) console.warn("Workflow role names unavailable:",profilesResult.error);
+        const userProfileMap=new Map((profilesResult.data||[]).map(profile=>[String(profile.id),profile.full_name||""]));
+        const roleMap=new Map((profilesResult.data||[]).map(profile=>[String(profile.id),profile.roles?.name||""]));
         const taskFor=instance=>tasks.filter(task=>String(task.instance_id)===String(instance.id));
         const currentTask=instance=>taskFor(instance).find(task=>pendingStatuses.includes(String(task.status||"").toLowerCase()));
         const nodeFor=instance=>{const task=currentTask(instance);return nodeMap.get(String(task?.node_id ?? instance.current_node_id));};
@@ -73,24 +84,33 @@ document.addEventListener("DOMContentLoaded", async () => {
             const names=peopleRows.filter(row=>String(row.workflow_id)===String(task.instance_id)&&String(row.task_id)===String(task.id)).map(row=>profileMap.get(String(row.user_id))).filter(Boolean);
             return [...new Set(names)].join(", ") || "Unassigned";
         };
+        const assigneeRoleText=task=>{
+            if(!task) return "—";
+            const assigned=assignments.filter(row=>String(row.task_id)===String(task.id)).map(row=>roleMap.get(String(row.user_id))).filter(Boolean);
+            if(assigned.length) return [...new Set(assigned)].join(", ");
+            const permission=String(nodeMap.get(String(task.node_id))?.required_permission_code||"").toLowerCase();
+            if(permission==="documents.sop.validate") return "SOP Validator";
+            if(permission==="documents.sop.approve") return "SOP Approver";
+            return "Unassigned";
+        };
         const latestBySopRevision=new Map();
         for(const instance of allInstances){const key=String(instance.source_document_id)+":"+String(instance.source_revision_id);const previous=latestBySopRevision.get(key);if(!previous||new Date(instance.started_at||0)>new Date(previous.started_at||0))latestBySopRevision.set(key,instance);}
         const rows=[...latestBySopRevision.values()].map(instance=>{
             const doc=docMap.get(String(instance.source_document_id)), revision=revisionMap.get(String(instance.source_revision_id)), task=currentTask(instance);
-            return {instance,doc,revision,task,stage:stageFor(instance),assignees:assigneeText(task),creator:profileMap.get(String(revision?.created_by||doc?.created_by))||"Creator profile unavailable"};
+            return {instance,doc,revision,task,stage:stageFor(instance),assignees:assigneeText(task),assigneeRoles:assigneeRoleText(task),creator:profileMap.get(String(revision?.created_by||doc?.created_by))||userProfileMap.get(String(revision?.created_by||doc?.created_by))||"Creator profile unavailable",area:workshopMap.get(String(doc?.workshop_id))||"—",process:processAreaMap.get(String(doc?.process_area_id))||"—",model:modelMap.get(String(doc?.model_id))||"—",partName:partNameMap.get(String(doc?.part_name_id))||"—"};
         });
         const validation=rows.filter(row=>active.some(instance=>String(instance.id)===String(row.instance.id))&&row.task&&row.stage==="Validation");
         const approval=rows.filter(row=>active.some(instance=>String(instance.id)===String(row.instance.id))&&row.task&&row.stage==="Approval");
         document.getElementById("pending-validation-count").textContent=String(validation.length);
         document.getElementById("pending-approval-count").textContent=String(approval.length);
         const renderQueue=(body,list,stage)=>{
-            if(!list.length){message(body,7,"No pending "+stage+" tasks.");return;}
-            body.innerHTML=list.map(row=>'<tr><td>'+escapeText((row.doc?.sop_code||"Unassigned")+" ("+(row.revision?.revision_code||"R??")+")")+'</td><td>'+escapeText(modelMap.get(String(row.doc?.model_id))||"—")+'</td><td>'+escapeText(row.doc?.part_number||"—")+'</td><td>'+escapeText(row.creator)+'</td><td>'+escapeText(row.assignees)+'</td><td>'+escapeText(dateText(row.task?.created_at||row.instance.started_at))+'</td><td><button type="button" class="secondary-button workflow-detail-button" data-instance-id="'+escapeText(row.instance.id)+'">Review</button></td></tr>').join("");
+            if(!list.length){message(body,9,"No pending "+stage+" tasks.");return;}
+            body.innerHTML=list.map(row=>'<tr class="catalog-clickable-row workflow-row" data-instance-id="'+escapeText(row.instance.id)+'" tabindex="0" role="button" aria-label="Review SOP '+escapeText(row.doc?.sop_code||"Unassigned")+'"><td>'+escapeText(row.area)+'</td><td>'+escapeText(row.process)+'</td><td>'+escapeText(row.model)+'</td><td>'+escapeText(row.partName)+'</td><td>'+escapeText(row.doc?.part_number||"—")+'</td><td>'+escapeText(row.doc?.operation_name||"—")+'</td><td>'+escapeText(row.creator)+'</td><td>'+escapeText(row.assigneeRoles)+'</td><td>'+escapeText(dateText(row.task?.created_at||row.instance.started_at))+'</td></tr>').join("");
         };
         renderQueue(validationBody,validation,"validation");
         renderQueue(approvalBody,approval,"approval");
-        if(!rows.length){message(workflowBody,6,"No SOP workflows found.");}
-        else workflowBody.innerHTML=rows.map(row=>'<tr><td>'+escapeText((row.doc?.sop_code||"Unassigned")+" ("+(row.revision?.revision_code||"R??")+")")+'</td><td>'+escapeText(row.stage)+'</td><td>'+escapeText(row.assignees)+'</td><td>'+escapeText(dateText(row.instance.started_at))+'</td><td><span class="status-badge status-'+escapeText(String(row.instance.status||"").toLowerCase())+'">'+escapeText(labelText(row.instance.status))+'</span></td><td><button type="button" class="secondary-button workflow-detail-button" data-instance-id="'+escapeText(row.instance.id)+'">View History</button></td></tr>').join("");
+        if(!rows.length){message(workflowBody,10,"No SOP workflows found.");}
+        else workflowBody.innerHTML=rows.map(row=>'<tr class="catalog-clickable-row workflow-row" data-instance-id="'+escapeText(row.instance.id)+'" tabindex="0" role="button" aria-label="View workflow for '+escapeText(row.doc?.sop_code||"Unassigned")+'"><td>'+escapeText(row.area)+'</td><td>'+escapeText(row.process)+'</td><td>'+escapeText(row.model)+'</td><td>'+escapeText(row.partName)+'</td><td>'+escapeText(row.doc?.part_number||"—")+'</td><td>'+escapeText(row.doc?.operation_name||"—")+'</td><td>'+escapeText(row.creator)+'</td><td>'+escapeText(row.stage)+'</td><td>'+escapeText(row.assigneeRoles)+'</td><td><span class="status-badge status-'+escapeText(String(row.instance.status||"").toLowerCase())+'">'+escapeText(labelText(row.instance.status))+'</span></td></tr>').join("");
     } catch(error) {
         console.error("Unable to load SOP workflow data:",error);
         message(validationBody,7,"Unable to load validation tasks. See browser console for details.");
@@ -99,8 +119,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
     document.addEventListener("click",async event=>{
         const button=event.target.closest(".workflow-detail-button");
-        if(!button)return;
-        const instanceId=button.dataset.instanceId, detail=document.querySelector(".sop-modal-body"), modal=document.getElementById("sop-modal");
+        const row=event.target.closest("tr.workflow-row[data-instance-id]");
+        if(!button&&!row)return;
+        if(row&&event.target.closest("button, a, input, select, textarea, label"))return;
+        const instanceId=(button||row).dataset.instanceId, detail=document.querySelector(".sop-modal-body"), modal=document.getElementById("sop-modal");
         detail.innerHTML="<p>Loading workflow details...</p>"; modal.classList.remove("hidden");
         try{
             const {data:instance,error:instanceError}=await supabaseClient.from("workflow_instances").select("*").eq("id",instanceId).eq("document_type_code","sop").single();

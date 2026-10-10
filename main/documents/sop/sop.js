@@ -611,14 +611,14 @@ async function initializeSopPage() {
     async function loadMyDrafts() {
         const body = document.getElementById("sop-drafts-body");
         if (!body) return;
-        body.innerHTML = '<tr><td colspan="7">Loading your drafts...</td></tr>';
+        body.innerHTML = '<tr><td colspan="8">Loading your drafts...</td></tr>';
         try {
             const { data: authData, error: authError } = await supabaseClient.auth.getUser();
             if (authError) throw authError;
             const userId = authData?.user?.id;
             if (!userId) {
                 setMyDraftsCount(0);
-                body.innerHTML = '<tr><td colspan="7">Please sign in to view your drafts.</td></tr>';
+                body.innerHTML = '<tr><td colspan="8">Please sign in to view your drafts.</td></tr>';
                 return;
             }
             const { data: documents, error: documentError } = await supabaseClient
@@ -632,13 +632,13 @@ async function initializeSopPage() {
                 .map(revision => ({doc, revision})))
                 .sort((a,b) => new Date(b.revision.created_at || b.doc.created_at) - new Date(a.revision.created_at || a.doc.created_at));
             setMyDraftsCount(drafts.length);
-            if (!drafts.length) { body.innerHTML = '<tr><td colspan="7">You have no draft SOPs.</td></tr>'; return; }
-            body.innerHTML = drafts.map(item => '<tr class="catalog-clickable-row" data-sop-id="' + escapeHtml(item.doc.id) + '" tabindex="0" role="button" aria-label="View SOP ' + escapeHtml(item.doc.sop_code || "Unassigned") + '"><td>' + escapeHtml(item.doc.sop_code || "Unassigned") + '</td><td>' + escapeHtml(item.doc.workshops?.name || "—") + '</td><td>' + escapeHtml(item.doc.process_areas?.name || "—") + '</td><td>' + escapeHtml(item.doc.models?.name || "—") + '</td><td>' + escapeHtml(item.doc.part_names?.name || "—") + '</td><td>' + escapeHtml(item.doc.part_number || "—") + '</td><td>' + escapeHtml(item.doc.operation_name || "—") + '</td></tr>').join("");
+            if (!drafts.length) { body.innerHTML = '<tr><td colspan="8">You have no draft SOPs.</td></tr>'; return; }
+            body.innerHTML = drafts.map(item => '<tr class="catalog-clickable-row" data-sop-id="' + escapeHtml(item.doc.id) + '" tabindex="0" role="button" aria-label="View SOP ' + escapeHtml(item.doc.sop_code || "Unassigned") + '"><td>' + escapeHtml(formatDate(item.revision.created_at || item.doc.created_at)) + '</td><td>' + escapeHtml(item.doc.sop_code || "Unassigned") + '</td><td>' + escapeHtml(item.doc.workshops?.name || "—") + '</td><td>' + escapeHtml(item.doc.process_areas?.name || "—") + '</td><td>' + escapeHtml(item.doc.models?.name || "—") + '</td><td>' + escapeHtml(item.doc.part_names?.name || "—") + '</td><td>' + escapeHtml(item.doc.part_number || "—") + '</td><td>' + escapeHtml(item.doc.operation_name || "—") + '</td></tr>').join("");
         } catch (error) {
             console.error("Error loading My Drafts:", error);
             const counter = document.getElementById("my-drafts-count");
             if (counter) counter.title = "Could not refresh. See browser console.";
-            body.innerHTML = '<tr><td colspan="7">Unable to load drafts. Check Supabase permissions and the browser console.</td></tr>';
+            body.innerHTML = '<tr><td colspan="8">Unable to load drafts. Check Supabase permissions and the browser console.</td></tr>';
         }
     }
     function escapeHtml(value) {
@@ -820,6 +820,7 @@ async function initializeSopPage() {
             .from("sop_documents")
             .select(`
                 id,
+                created_by,
                 sop_code,
                 part_number,
                 operation_name,
@@ -845,6 +846,7 @@ async function initializeSopPage() {
                 ),
                 sop_revisions (
                     revision_number,
+                    created_by,
                     revision_code,
                     description,
                     status,
@@ -859,6 +861,8 @@ async function initializeSopPage() {
             modalBody.innerHTML = "<p>Error loading SOP information.</p>";
             return;
         }
+        const { data: currentUserData } = await supabaseClient.auth.getUser();
+        document.getElementById("sop-modal").dataset.currentUserId = currentUserData?.user?.id || "";
         renderSopModal(data);
         document.getElementById("sop-modal").dataset.sop = JSON.stringify(data);
     }
@@ -915,6 +919,13 @@ async function initializeSopPage() {
                     <span>Description</span>
                     <p>${currentRevision?.description || ""}</p>
                 </div>
+                ${String(currentRevision?.status || "").toLowerCase() === "draft" && String(currentRevision?.created_by || sop.created_by) === String(document.getElementById("sop-modal").dataset.currentUserId || "") ? `
+                    <div class="sop-modal-actions draft-modal-actions">
+                        <button type="button" class="secondary-button edit-draft-button" data-sop-id="${sop.id}">Edit</button>
+                        <button type="button" class="danger-button delete-draft-button" data-sop-id="${sop.id}">Delete</button>
+                        <button type="button" class="primary-button draft-submit-button" data-sop-id="${sop.id}" data-revision-id="${currentRevision.id}" data-sop-code="${sop.sop_code || "Unassigned"}" data-revision-code="${currentRevision.revision_code || ""}">Submit for Validation</button>
+                    </div>
+                ` : ""}
                 ${String(currentRevision?.status || "").toLowerCase() === "released" ? `
                     <div class="sop-modal-actions">
                         <button type="button" class="remark-button modal-revision-button" data-sop-id="${sop.id}">
@@ -1027,11 +1038,20 @@ async function initializeSopPage() {
 
 
 function initializeResizableCatalogColumns() {
+    const staticWidths = {
+        "sop-catalog": [110, 130, 145, 110, 125, 105, 130, 125, 190, 90, 130],
+        "sop-drafts": [110, 150, 130, 130, 110, 145, 130, 210],
+        "sop-validation": [95, 105, 85, 105, 95, 125, 115, 105, 130],
+        "sop-approval": [95, 105, 85, 105, 95, 125, 115, 105, 130],
+        "sop-workflow": [95, 105, 85, 105, 95, 125, 115, 110, 105, 100]
+    };
     document.querySelectorAll(".catalog-table table").forEach(table => {
         if (table.dataset.columnsResizable === "true") return;
         const headers = [...table.querySelectorAll("thead th")];
         if (!headers.length || table.getBoundingClientRect().width < 1) return;
-        const widths = headers.map(header => Math.max(60, Math.round(header.getBoundingClientRect().width)));
+        const sectionId = table.closest(".sop-section")?.id || (table.closest(".sop-catalog") ? "sop-catalog" : "");
+        const configuredWidths = staticWidths[sectionId];
+        const widths = headers.map((header, index) => configuredWidths?.[index] || Math.max(80, Math.round(header.getBoundingClientRect().width)));
         headers.forEach((header, index) => {
             header.style.width = widths[index] + "px";
             [...table.rows].forEach(row => {
@@ -1069,7 +1089,9 @@ function initializeResizableCatalogColumns() {
                 document.addEventListener("pointercancel", stop, {once: true});
             });
         });
-        table.style.width = Math.max(table.parentElement?.clientWidth || 0, widths.reduce((sum, value) => sum + value, 0)) + "px";
+        const validationTable = ["sop-validation", "sop-approval"].includes(sectionId);
+        table.style.width = validationTable ? "100%" : widths.reduce((sum, value) => sum + value, 0) + "px";
+        table.style.minWidth = validationTable ? "0" : widths.reduce((sum, value) => sum + value, 0) + "px";
         table.dataset.columnsResizable = "true";
     });
 }

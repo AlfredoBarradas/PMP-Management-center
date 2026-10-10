@@ -70,53 +70,20 @@
                         </div>
                         <!-- FILTERS -->
                         <div class="catalog-filters">
-                            <div class="filter-group">
-                                <label for="area">Area</label>
-                                <select id="area">
-                                    <option value="">All workshop areas</option>
-                                </select>
-                            </div>
-                            <div class="filter-group">
-                                <label for="part-name">Part Name</label>
-                                <select id="part-name">
-                                    <option value="">All part names</option>
-                                </select>
-                            </div>
-                            <div class="filter-group">
-                                <label for="model">Model</label>
-                                <select id="model">
-                                    <option value="">All models series</option>
-                                </select>
-                            </div>
-                            <div class="filter-group">
-                                <label for="size">Size</label>
-                                <select id="size">
-                                    <option value="">All model sizes</option>
-                                </select>
-                            </div>
-                            <div class="filter-group">
-                                <label for="part-number">Part Number</label>
-                                <select id="part-number">
-                                    <option value="">All Part Numbers</option>
-                                </select>
-                            </div>
+                            <div class="filter-group"><label for="filter-area">Area</label><select id="filter-area"><option value="">All areas</option></select></div>
+                            <div class="filter-group"><label for="filter-process">Process</label><select id="filter-process"><option value="">All processes</option></select></div>
+                            <div class="filter-group"><label for="filter-series">Model Series</label><select id="filter-series"><option value="">All model series</option></select></div>
+                            <div class="filter-group"><label for="filter-model">Size / Model</label><select id="filter-model"><option value="">All sizes</option></select></div>
+                            <div class="filter-group"><label for="filter-part-name">Part Name</label><select id="filter-part-name"><option value="">All part names</option></select></div>
+                            <div class="filter-group"><label for="filter-created-by">Created By</label><select id="filter-created-by"><option value="">All creators</option></select></div>
+                            <div class="filter-group"><label for="filter-status">Status</label><select id="filter-status"><option value="">All statuses</option></select></div>
                         </div>
                         <!-- TABLE -->
                         <div class="catalog-table">
                             <table>
                                 <thead>
                                     <tr>
-                                        <th>Area</th>
-                                        <th>Code</th>
-                                        <th>Process</th>
-                                        <th>Model</th>
-                                        <th>Part Name</th>
-                                        <th>Part No.</th>
-                                        <th>Operation Name</th>
-                                        <th>Revision</th>
-                                        <th>Date</th>
-                                        <th>Status</th>
-                                        <th>Action</th>
+                                        <th>Date</th><th>Code</th><th>Area</th><th>Process</th><th>Model</th><th>Part Number</th><th>Part Name</th><th>Operation Name</th><th>Revision</th><th>Created By</th><th>Status</th><th>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody id="sop-catalog-body">
@@ -238,6 +205,7 @@
                         <button type="button" class="secondary-button" data-section="sop-control">Back</button>
                     </div>
 
+                    <div class="catalog-search section-search"><label for="sop-drafts-search">Search my drafts</label><input type="search" id="sop-drafts-search" placeholder="Search code, model, part number, operation..."></div>
                     <div class="catalog-table">
                         <table>
                             <thead>
@@ -267,6 +235,7 @@
                         <button type="button" class="secondary-button" data-section="sop-control">Back</button>
                     </div>
 
+                    <div class="catalog-search section-search"><label for="sop-validation-search">Search pending validation</label><input type="search" id="sop-validation-search" placeholder="Search code, model, part number, creator..."></div>
                     <div class="catalog-table">
                         <table>
                             <thead>
@@ -295,6 +264,7 @@
                         <button type="button" class="secondary-button" data-section="sop-control">Back</button>
                     </div>
 
+                    <div class="catalog-search section-search"><label for="sop-approval-search">Search pending approval</label><input type="search" id="sop-approval-search" placeholder="Search code, model, part number, creator..."></div>
                     <div class="catalog-table">
                         <table>
                             <thead>
@@ -323,6 +293,7 @@
                         <button type="button" class="secondary-button" data-section="sop-control">Back</button>
                     </div>
 
+                    <div class="catalog-search section-search"><label for="sop-workflow-search">Search workflow</label><input type="search" id="sop-workflow-search" placeholder="Search code, stage, assignee, status..."></div>
                     <div class="catalog-table">
                         <table>
                             <thead>

@@ -1019,10 +1019,6 @@ async function initializeSopPage() {
         if (createRevisionButton) {
             const sopId = Number(createRevisionButton.dataset.sopId);
             const changeSummary = document.getElementById("revision-change-summary")?.value.trim() || "";
-            const fileInput = document.getElementById("revision-file");
-            const file = fileInput?.files?.[0];
-            if (!file) { alert("Select the updated SOP file before creating the revision."); fileInput?.focus(); return; }
-            if (file.size > 20 * 1024 * 1024) { alert("The file exceeds the 20 MB limit."); return; }
             if (!changeSummary) {
                 alert("Enter a Change Summary before creating the revision.");
                 document.getElementById("revision-change-summary")?.focus();

@@ -824,12 +824,9 @@ async function initializeSopPage() {
                 "<td>"+escapeHtml(sop.workshops?.name||"")+"</td>"+
                 "<td>"+escapeHtml(sop.process_areas?.name||"")+"</td>"+
                 "<td>"+escapeHtml(sop.models?.name||"")+"</td>"+
-                "<td>"+escapeHtml(sop.part_number||"")+"</td>"+
                 "<td>"+escapeHtml(sop.part_names?.name||"")+"</td>"+
-                "<td>"+escapeHtml(sop.operation_name||"")+"</td>"+
-                "<td>"+renderRevisionBadge(current?.revision_code,status)+"</td>"+
-                "<td>"+escapeHtml(creator)+"</td>"+
-                '<td><span aria-hidden="true">View details</span></td>';
+                "<td>"+escapeHtml(sop.part_number||"")+"</td>"+
+                "<td>"+escapeHtml(sop.operation_name||"")+"</td>";
             body.appendChild(row);
         });
     }

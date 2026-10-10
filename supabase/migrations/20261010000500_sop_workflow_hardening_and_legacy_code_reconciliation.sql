@@ -79,7 +79,7 @@ BEGIN
         WHERE sd.workshop_id = v_doc.workshop_id;
 
         v_next_number := GREATEST(v_counter_next, v_max_number);
-        v_new_code := v_doc.workshop_code || '-' || pg_catalog.lpad(v_next_number::text, 4, '0');
+        v_new_code := v_doc.workshop_code || '-' || pg_catalog.lpad(v_next_number::text, GREATEST(4, pg_catalog.length(v_next_number::text)), '0');
 
         UPDATE public.sop_documents
         SET sop_number = v_next_number,

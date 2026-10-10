@@ -1,7 +1,7 @@
 -- Resolve names only for people connected to SOP workflows the caller may read.
 -- This avoids granting broad SELECT access to user_profiles.
 CREATE OR REPLACE FUNCTION public.get_sop_workflow_people(p_instance_ids bigint[])
-RETURNS TABLE(workflow_id bigint, user_id uuid, full_name text)
+RETURNS TABLE(workflow_id bigint, task_id bigint, user_id uuid, full_name text)
 LANGUAGE sql
 STABLE
 SECURITY DEFINER
@@ -28,31 +28,31 @@ AS $function$
           )
     ),
     people AS (
-        SELECT vi.id AS workflow_id, sd.created_by AS user_id
+        SELECT vi.id AS workflow_id, NULL::bigint AS task_id, sd.created_by AS user_id
         FROM visible_instances vi
         JOIN public.sop_documents sd ON sd.id = vi.source_document_id
         UNION
-        SELECT vi.id, sr.created_by
+        SELECT vi.id, NULL::bigint, sr.created_by
         FROM visible_instances vi
         JOIN public.sop_revisions sr ON sr.id = vi.source_revision_id
         UNION
-        SELECT vi.id, vi.started_by
+        SELECT vi.id, NULL::bigint, vi.started_by
         FROM visible_instances vi
         UNION
-        SELECT vi.id, wt.created_by
+        SELECT vi.id, wt.id, wt.created_by
         FROM visible_instances vi
         JOIN public.workflow_tasks wt ON wt.instance_id = vi.id
         UNION
-        SELECT vi.id, wta.user_id
+        SELECT vi.id, wt.id, wta.user_id
         FROM visible_instances vi
         JOIN public.workflow_tasks wt ON wt.instance_id = vi.id
         JOIN public.workflow_task_assignees wta ON wta.task_id = wt.id
         UNION
-        SELECT vi.id, wh.actor_id
+        SELECT vi.id, wh.task_id, wh.actor_id
         FROM visible_instances vi
         JOIN public.workflow_history wh ON wh.instance_id = vi.id
     )
-    SELECT DISTINCT people.workflow_id, people.user_id, up.full_name
+    SELECT DISTINCT people.workflow_id, people.task_id, people.user_id, up.full_name
     FROM people
     JOIN public.user_profiles up ON up.id = people.user_id
     WHERE people.user_id IS NOT NULL;

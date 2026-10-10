@@ -852,7 +852,10 @@ async function initializeSopPage() {
                     description,
                     status,
                     created_at,
-                    released_at
+                    released_at,
+                    document_name,
+                    drive_file_id,
+                    drive_url
                 )
             `)
             .eq("id", sopId)
@@ -920,6 +923,12 @@ async function initializeSopPage() {
                     <span>Description</span>
                     <p>${currentRevision?.description || ""}</p>
                 </div>
+                ${currentRevision?.drive_url ? `
+                    <div class="sop-modal-field sop-modal-field-full">
+                        <span>Revision File</span>
+                        <a href="${currentRevision.drive_url}" target="_blank" rel="noopener noreferrer">${currentRevision.document_name || "Open file in Google Drive"}</a>
+                    </div>
+                ` : ""}
                 ${String(currentRevision?.status || "").toLowerCase() === "draft" && String(currentRevision?.created_by || sop.created_by) === String(document.getElementById("sop-modal").dataset.currentUserId || "") ? `
                     <div class="sop-modal-actions draft-modal-actions">
                         <button type="button" class="secondary-button edit-draft-button" data-sop-id="${sop.id}">Edit</button>

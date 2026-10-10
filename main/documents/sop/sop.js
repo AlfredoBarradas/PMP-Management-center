@@ -688,6 +688,8 @@ async function initializeSopPage() {
         return String(value ?? "").replace(/[&<>"']/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
     }
     document.addEventListener("click", async event => {
+        const draftRow = event.target.closest("#sop-drafts-body .catalog-clickable-row");
+        if (draftRow && !event.target.closest("button, a, input, select, textarea, label")) { viewSop(draftRow.dataset.sopId); return; }
         const viewButton = event.target.closest(".draft-view-button");
         if (viewButton) { viewSop(viewButton.dataset.sopId); return; }
         const editButton = event.target.closest(".edit-draft-button");

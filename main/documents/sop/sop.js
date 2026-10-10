@@ -894,7 +894,32 @@ async function initializeSopPage() {
         const revisions = sop.sop_revisions || [];
         const currentRevision = revisions
             .sort((a, b) => b.revision_number - a.revision_number)[0];
+        const orderedRevisions = [...revisions].sort((a, b) => (Number(b.revision_number) || 0) - (Number(a.revision_number) || 0));
+        const revisionHistoryHtml = orderedRevisions.length > 1 ? `
+            <details class="sop-revision-history">
+                <summary>Revision History (${orderedRevisions.length})</summary>
+                <div class="sop-revision-history-list">
+                    ${orderedRevisions.map(revision => `
+                        <details class="sop-revision-history-item">
+                            <summary>
+                                <strong>${escapeHtml(revision.revision_code || "")}</strong>
+                                <span class="sop-revision-history-status">${escapeHtml(revision.status || "")}</span>
+                                <small>${escapeHtml(formatDate(revision.released_at || revision.created_at))}</small>
+                            </summary>
+                            <div class="sop-revision-history-details">
+                                <p><strong>Change Summary</strong></p>
+                                <p>${escapeHtml(revision.description || "No change summary recorded.")}</p>
+                                <p><strong>Status:</strong> ${escapeHtml(revision.status || "")}</p>
+                                <p><strong>Created:</strong> ${escapeHtml(formatDate(revision.created_at))}</p>
+                                ${revision.released_at ? `<p><strong>Released:</strong> ${escapeHtml(formatDate(revision.released_at))}</p>` : ""}
+                            </div>
+                        </details>
+                    `).join("")}
+                </div>
+            </details>
+        ` : "";
         modalBody.innerHTML = `
+            ${revisionHistoryHtml}
             <div class="sop-modal-grid">
                 <div class="sop-modal-field">
                     <span>SOP Code</span>

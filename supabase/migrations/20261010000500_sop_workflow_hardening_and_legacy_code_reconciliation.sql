@@ -130,4 +130,123 @@ REVOKE ALL ON FUNCTION public.supervisor_release_sop_revision(bigint, integer, t
 REVOKE ALL ON FUNCTION public.validate_sop_revision(bigint, integer, text, uuid)
     FROM PUBLIC, anon, authenticated;
 
+
+-- Private storage for revision attachments.
+ALTER TABLE public.sop_revisions
+    ADD COLUMN IF NOT EXISTS storage_path text,
+    ADD COLUMN IF NOT EXISTS document_name text,
+    ADD COLUMN IF NOT EXISTS document_mime_type text;
+
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES (
+    'sop-revision-files',
+    'sop-revision-files',
+    false,
+    20971520,
+    ARRAY[
+        'application/pdf',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/msword'
+    ]
+)
+ON CONFLICT (id) DO UPDATE
+SET public = false,
+    file_size_limit = EXCLUDED.file_size_limit,
+    allowed_mime_types = EXCLUDED.allowed_mime_types;
+
+DROP POLICY IF EXISTS "SOP revision files view permission" ON storage.objects;
+CREATE POLICY "SOP revision files view permission"
+ON storage.objects FOR SELECT TO authenticated
+USING (
+    bucket_id = 'sop-revision-files'
+    AND public.has_permission('documents.sop.view')
+);
+
+DROP POLICY IF EXISTS "SOP revision files create permission" ON storage.objects;
+CREATE POLICY "SOP revision files create permission"
+ON storage.objects FOR INSERT TO authenticated
+WITH CHECK (
+    bucket_id = 'sop-revision-files'
+    AND public.has_permission('documents.sop.create')
+);
+
+DROP POLICY IF EXISTS "SOP revision files update permission" ON storage.objects;
+CREATE POLICY "SOP revision files update permission"
+ON storage.objects FOR UPDATE TO authenticated
+USING (
+    bucket_id = 'sop-revision-files'
+    AND public.has_permission('documents.sop.create')
+)
+WITH CHECK (
+    bucket_id = 'sop-revision-files'
+    AND public.has_permission('documents.sop.create')
+);
+
+DROP POLICY IF EXISTS "SOP revision files delete permission" ON storage.objects;
+CREATE POLICY "SOP revision files delete permission"
+ON storage.objects FOR DELETE TO authenticated
+USING (
+    bucket_id = 'sop-revision-files'
+    AND public.has_permission('documents.sop.create')
+);
+
+CREATE OR REPLACE FUNCTION public.save_sop_revision_file(
+    p_sop_id bigint,
+    p_revision_id bigint,
+    p_storage_path text,
+    p_document_name text,
+    p_document_mime_type text
+)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO ''
+AS $function$
+DECLARE
+    v_actor_id uuid;
+BEGIN
+    v_actor_id := auth.uid();
+    IF v_actor_id IS NULL THEN
+        RAISE EXCEPTION 'Authentication required' USING ERRCODE = '42501';
+    END IF;
+    IF NOT public.has_permission('documents.sop.create') THEN
+        RAISE EXCEPTION 'Insufficient permission to attach a revision file' USING ERRCODE = '42501';
+    END IF;
+    IF p_storage_path IS NULL
+       OR p_storage_path !~ ('^' || p_sop_id::text || '/' || p_revision_id::text || '/[^/]+) THEN
+        RAISE EXCEPTION 'Invalid SOP revision storage path';
+    END IF;
+    IF pg_catalog.btrim(COALESCE(p_document_name, '')) = '' THEN
+        RAISE EXCEPTION 'Document name cannot be empty';
+    END IF;
+    IF p_document_mime_type NOT IN (
+        'application/pdf',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/msword'
+    ) THEN
+        RAISE EXCEPTION 'Unsupported SOP document type';
+    END IF;
+    UPDATE public.sop_revisions AS r
+    SET storage_path = p_storage_path,
+        document_name = pg_catalog.btrim(p_document_name),
+        document_mime_type = p_document_mime_type
+    WHERE r.id = p_revision_id
+      AND r.sop_id = p_sop_id
+      AND r.status = 'Draft'
+      AND r.created_by = v_actor_id;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Draft revision not found or not owned by the current user';
+    END IF;
+END;
+$function$;
+
+REVOKE ALL ON FUNCTION public.save_sop_revision_file(bigint, bigint, text, text, text)
+    FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.save_sop_revision_file(bigint, bigint, text, text, text)
+    TO authenticated;
+
 COMMIT;

@@ -741,3 +741,24 @@
         min-width: 720px;
     }
 }
+
+
+/* Fixed catalog column widths and single-line catalog text */
+.catalog-table table { table-layout: fixed; }
+.catalog-table th,
+.catalog-table td { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; overflow-wrap: normal; }
+.catalog-table th .column-resizer { z-index: 5; }
+#sop-catalog .catalog-table table,
+#sop-drafts .catalog-table table,
+#sop-workflow .catalog-table table { width: max-content; min-width: max-content; }
+#sop-validation .catalog-table,
+#sop-approval .catalog-table { overflow-x: hidden; }
+#sop-validation .catalog-table table,
+#sop-approval .catalog-table table { width: 100% !important; min-width: 0 !important; table-layout: fixed; }
+#sop-validation .catalog-table th,
+#sop-validation .catalog-table td,
+#sop-approval .catalog-table th,
+#sop-approval .catalog-table td { padding: 10px 6px; }
+#sop-validation .catalog-table th .column-resizer,
+#sop-approval .catalog-table th .column-resizer { display: none; }
+#sop-modal .sop-modal-actions.draft-modal-actions { display: flex; flex-wrap: wrap; gap: 8px; }

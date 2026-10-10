@@ -717,7 +717,7 @@ async function initializeSopPage() {
             sop_revisions(id,revision_number,revision_code,status,created_at,created_by)
         `).order("created_at",{ascending:false});
         if(error){console.error("Error loading SOP catalog:",error);catalogBody.innerHTML='<tr><td colspan="12">Error loading SOP catalog.</td></tr>';return;}
-        const creatorIds=[...new Set((data||[]).map(sop=>sop.current_revision?.created_by||sop.created_by).filter(Boolean))];
+        const creatorIds=[...new Set((data||[]).map(sop=>currentSopRevision(sop)?.created_by||sop.created_by).filter(Boolean))];
         let profiles=[];
         if(creatorIds.length){
             const profileResult=await supabaseClient.from("user_profiles").select("id,full_name").in("id",creatorIds);

@@ -50,3 +50,15 @@
     color: #e9e9e9;
 }
 
+
+
+#page-description {
+    margin: 2px 0 0;
+    font-size: 12px;
+    line-height: 1.25;
+    color: #e9f7f7;
+    font-weight: 400;
+}
+.topbar-title h2 {
+    line-height: 1.1;
+}

@@ -63,8 +63,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         const peopleRows=peopleResult.data||[];
         const profileMap=new Map(peopleRows.map(row=>[String(row.user_id),row.full_name]));
         const profileIds=[...new Set([...peopleRows.map(row=>row.user_id),...docs.map(row=>row.created_by),...revisions.map(row=>row.created_by)].filter(Boolean).map(String))];
-        const profilesResult=profileIds.length?await supabaseClient.from("user_profiles").select("id,role_id,roles(name)").in("id",profileIds):{data:[],error:null};
+        const profilesResult=profileIds.length?await supabaseClient.from("user_profiles").select("id,full_name,role_id,roles(name)").in("id",profileIds):{data:[],error:null};
         if(profilesResult.error) console.warn("Workflow role names unavailable:",profilesResult.error);
+        const userProfileMap=new Map((profilesResult.data||[]).map(profile=>[String(profile.id),profile.full_name||""]));
         const roleMap=new Map((profilesResult.data||[]).map(profile=>[String(profile.id),profile.roles?.name||""]));
         const taskFor=instance=>tasks.filter(task=>String(task.instance_id)===String(instance.id));
         const currentTask=instance=>taskFor(instance).find(task=>pendingStatuses.includes(String(task.status||"").toLowerCase()));
@@ -96,7 +97,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         for(const instance of allInstances){const key=String(instance.source_document_id)+":"+String(instance.source_revision_id);const previous=latestBySopRevision.get(key);if(!previous||new Date(instance.started_at||0)>new Date(previous.started_at||0))latestBySopRevision.set(key,instance);}
         const rows=[...latestBySopRevision.values()].map(instance=>{
             const doc=docMap.get(String(instance.source_document_id)), revision=revisionMap.get(String(instance.source_revision_id)), task=currentTask(instance);
-            return {instance,doc,revision,task,stage:stageFor(instance),assignees:assigneeText(task),assigneeRoles:assigneeRoleText(task),creator:profileMap.get(String(revision?.created_by||doc?.created_by))||"Creator profile unavailable",area:workshopMap.get(String(doc?.workshop_id))||"—",process:processAreaMap.get(String(doc?.process_area_id))||"—",model:modelMap.get(String(doc?.model_id))||"—",partName:partNameMap.get(String(doc?.part_name_id))||"—"};
+            return {instance,doc,revision,task,stage:stageFor(instance),assignees:assigneeText(task),assigneeRoles:assigneeRoleText(task),creator:profileMap.get(String(revision?.created_by||doc?.created_by))||userProfileMap.get(String(revision?.created_by||doc?.created_by))||"Creator profile unavailable",area:workshopMap.get(String(doc?.workshop_id))||"—",process:processAreaMap.get(String(doc?.process_area_id))||"—",model:modelMap.get(String(doc?.model_id))||"—",partName:partNameMap.get(String(doc?.part_name_id))||"—"};
         });
         const validation=rows.filter(row=>active.some(instance=>String(instance.id)===String(row.instance.id))&&row.task&&row.stage==="Validation");
         const approval=rows.filter(row=>active.some(instance=>String(instance.id)===String(row.instance.id))&&row.task&&row.stage==="Approval");

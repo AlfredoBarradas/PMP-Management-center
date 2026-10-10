@@ -213,8 +213,17 @@
     border-bottom: none;
 }
 
+.catalog-table tbody tr {
+    transition: background-color 160ms ease, box-shadow 160ms ease;
+}
 .catalog-table tbody tr:hover {
-    background: #f8fafb;
+    background: #e5f4f2;
+}
+#sop-catalog-body tr {
+    cursor: pointer;
+}
+#sop-catalog-body tr:hover {
+    box-shadow: inset 3px 0 0 #168a80;
 }
 
 .table-actions {

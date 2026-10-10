@@ -660,18 +660,22 @@ async function initializeSopPage() {
                 body.innerHTML = '<tr><td colspan="8">Please sign in to view your drafts.</td></tr>';
                 return;
             }
-            const { data: documents, error: documentError } = await supabaseClient
-                .from("sop_documents")
-                .select("id,sop_code,part_number,operation_name,created_at,created_by,models(name),part_names(name),sop_revisions(id,revision_code,revision_number,status,created_at,created_by,description)")
+            const { data: revisions, error: revisionError } = await supabaseClient
+                .from("sop_revisions")
+                .select("id,sop_id,revision_code,revision_number,status,created_at,created_by,description,sop_documents!inner(id,sop_code,part_number,operation_name,created_at,created_by,models(name),part_names(name))")
                 .eq("created_by", userId)
+                .eq("status", "Draft")
                 .order("created_at", { ascending: false });
-            if (documentError) throw documentError;
-            const drafts = (documents || []).flatMap(doc => (doc.sop_revisions || [])
-                .filter(revision => String(revision.status || "").toLowerCase() === "draft" && String(revision.created_by || doc.created_by) === String(userId))
-                .map(revision => ({doc, revision})))
-                .sort((a,b) => new Date(b.revision.created_at || b.doc.created_at) - new Date(a.revision.created_at || a.doc.created_at));
+            if (revisionError) throw revisionError;
+            const drafts = (revisions || []).map(revision => ({
+                doc: revision.sop_documents,
+                revision
+            })).filter(item => item.doc);
             setMyDraftsCount(drafts.length);
-            if (!drafts.length) { body.innerHTML = '<tr><td colspan="8">You have no draft SOPs.</td></tr>'; return; }
+            if (!drafts.length) {
+                body.innerHTML = '<tr><td colspan="8">You have no draft SOPs.</td></tr>';
+                return;
+            }
             body.innerHTML = drafts.map(item => '<tr><td>' + escapeHtml(item.doc.sop_code || "Unassigned") + '</td><td>' + escapeHtml(item.doc.models?.name || "") + '</td><td>' + escapeHtml(item.doc.part_names?.name || "") + '</td><td>' + escapeHtml(item.doc.part_number || "") + '</td><td>' + escapeHtml(item.doc.operation_name || "") + '</td><td>' + escapeHtml(item.revision.revision_code || "") + '</td><td>' + escapeHtml(formatDate(item.revision.created_at || item.doc.created_at)) + '</td><td class="table-actions"><button type="button" class="secondary-button draft-view-button" data-sop-id="' + escapeHtml(item.doc.id) + '">View</button><button type="button" class="secondary-button edit-draft-button" data-sop-id="' + escapeHtml(item.doc.id) + '">Edit</button><button type="button" class="primary-button draft-submit-button" data-sop-id="' + escapeHtml(item.doc.id) + '" data-revision-id="' + escapeHtml(item.revision.id) + '" data-sop-code="' + escapeHtml(item.doc.sop_code || "Unassigned") + '" data-revision-code="' + escapeHtml(item.revision.revision_code) + '">Submit</button><button type="button" class="danger-button delete-draft-button" data-sop-id="' + escapeHtml(item.doc.id) + '">Delete</button></td></tr>').join("");
         } catch (error) {
             console.error("Error loading My Drafts:", error);
@@ -1076,9 +1080,26 @@ async function initializeSopPage() {
                     console.error("Unexpected create_sop_revision response:", revisionData);
                     throw new Error("Revision creation returned an unexpected response.");
                 }
+                const { data: revisionRecord, error: revisionLookupError } = await supabaseClient
+                    .from("sop_revisions")
+                    .select("id")
+                    .eq("sop_id", Number(sop.id))
+                    .eq("revision_code", createdRevision.revision_code)
+                    .single();
+                if (revisionLookupError) throw revisionLookupError;
+                const { error: workflowError } = await supabaseClient.rpc("workflow_start_instance", {
+                    p_definition_id: 1,
+                    p_source_document_id: Number(sop.id),
+                    p_source_revision_id: Number(revisionRecord.id),
+                    p_metadata: { source: "sop_revision_modal", submitted_from: "Create Revision" }
+                });
                 closeSopModal();
-                await Promise.all([loadSopCatalog(), loadMyDrafts()]);
-                alert("Revision " + createdRevision.revision_code + " was created as Draft. You can find it in My Drafts to edit or submit it for validation.");
+                await Promise.all([loadSopCatalog(), loadMyDrafts(), refreshWorkflowCounts()]);
+                if (workflowError) {
+                    alert("Revision " + createdRevision.revision_code + " was created, but submission failed: " + workflowError.message + ". It remains Draft. Check My Drafts to retry.");
+                } else {
+                    alert("Revision " + createdRevision.revision_code + " was created and submitted for validation.");
+                }
             } catch (error) {
                 console.error("Error creating SOP revision:", error);
                 alert("Could not create the revision: " + (error?.message || "Check the browser console for details."));

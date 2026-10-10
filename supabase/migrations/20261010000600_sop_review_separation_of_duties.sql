@@ -24,25 +24,6 @@ BEGIN
         RETURN NEW;
     END IF;
 
-    IF auth.uid() IS NULL THEN
-        RAISE EXCEPTION 'Authentication required to act on a workflow task'
-            USING ERRCODE = '42501';
-    END IF;
-
-    IF EXISTS (
-        SELECT 1
-        FROM public.workflow_task_assignees AS assigned
-        WHERE assigned.task_id = NEW.id
-    ) AND NOT EXISTS (
-        SELECT 1
-        FROM public.workflow_task_assignees AS assigned
-        WHERE assigned.task_id = NEW.id
-          AND assigned.user_id = auth.uid()
-    ) THEN
-        RAISE EXCEPTION 'Only a user assigned to this workflow task can complete or reject it'
-            USING ERRCODE = '42501';
-    END IF;
-
     SELECT wi.id,
            wi.document_type_code,
            wi.source_document_id,
@@ -63,6 +44,25 @@ BEGIN
        OR v_required_permission IS NULL
        OR v_required_permission NOT IN ('documents.sop.validate', 'documents.sop.approve') THEN
         RETURN NEW;
+    END IF;
+
+    IF auth.uid() IS NULL THEN
+        RAISE EXCEPTION 'Authentication required to act on a workflow task'
+            USING ERRCODE = '42501';
+    END IF;
+
+    IF EXISTS (
+        SELECT 1
+        FROM public.workflow_task_assignees AS assigned
+        WHERE assigned.task_id = NEW.id
+    ) AND NOT EXISTS (
+        SELECT 1
+        FROM public.workflow_task_assignees AS assigned
+        WHERE assigned.task_id = NEW.id
+          AND assigned.user_id = auth.uid()
+    ) THEN
+        RAISE EXCEPTION 'Only a user assigned to this SOP workflow task can complete or reject it'
+            USING ERRCODE = '42501';
     END IF;
 
     SELECT sr.created_by

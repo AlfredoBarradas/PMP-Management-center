@@ -1023,7 +1023,7 @@ async function initializeSopPage() {
 
 
 
-    document.addEventListener("click", event => {
+    document.addEventListener("click", async event => {
         const viewButton = event.target.closest(".view-sop-button");
         if (viewButton) {
             viewSop(viewButton.dataset.sopId);

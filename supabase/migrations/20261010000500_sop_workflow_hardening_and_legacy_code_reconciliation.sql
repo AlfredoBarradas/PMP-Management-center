@@ -119,6 +119,8 @@ REVOKE ALL ON FUNCTION public.approve_sop_revision(bigint, integer, text, uuid)
     FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.create_sop_revision(bigint, text, uuid)
     FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.create_sop_revision(bigint, text, uuid)
+    TO authenticated;
 REVOKE ALL ON FUNCTION public.reject_sop_revision(bigint, integer, text, uuid)
     FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.submit_sop_for_validation(bigint, integer, text, uuid)

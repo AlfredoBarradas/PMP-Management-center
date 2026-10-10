@@ -1027,3 +1027,60 @@ body[data-page="SOP"] .sop-field-invalid textarea { border: 1px solid var(--pmp-
     body[data-page="SOP"] .catalog-table td { padding: 8px 5px; font-size: 11px; }
     body[data-page="SOP"] .sop-modal-grid { grid-template-columns: 1fr; }
 }
+
+
+/* Catalogs: remove nested white cards and align the content with the page */
+body[data-page="SOP"] .sop-catalog,
+body[data-page="SOP"] #sop-drafts,
+body[data-page="SOP"] #sop-validation,
+body[data-page="SOP"] #sop-approval,
+body[data-page="SOP"] #sop-workflow {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 0;
+    margin-inline: 0;
+    width: 100%;
+    max-width: 100%;
+}
+body[data-page="SOP"] .catalog-table {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    margin: 12px 0 0;
+    padding: 0;
+}
+body[data-page="SOP"] .catalog-table table {
+    background: transparent;
+}
+body[data-page="SOP"] .catalog-table thead {
+    background: #E6EFF1;
+}
+body[data-page="SOP"] .catalog-table th {
+    background: #E6EFF1;
+    border-bottom: 1px solid #C9DADD;
+}
+body[data-page="SOP"] .catalog-table td {
+    background: transparent;
+}
+body[data-page="SOP"] .catalog-table tbody tr {
+    background: transparent;
+}
+body[data-page="SOP"] .catalog-table tbody tr:hover {
+    background: #E1F4F3;
+}
+body[data-page="SOP"] .sop-catalog .section-header,
+body[data-page="SOP"] #sop-drafts > .section-header,
+body[data-page="SOP"] #sop-validation > .section-header,
+body[data-page="SOP"] #sop-approval > .section-header,
+body[data-page="SOP"] #sop-workflow > .section-header {
+    text-align: left;
+    justify-content: flex-start;
+}
+body[data-page="SOP"] .catalog-table td,
+body[data-page="SOP"] .catalog-table th {
+    border-left: 0;
+    border-right: 0;
+}

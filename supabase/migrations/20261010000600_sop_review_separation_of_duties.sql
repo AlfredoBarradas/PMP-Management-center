@@ -40,6 +40,7 @@ BEGIN
     WHERE wi.id = NEW.instance_id;
 
     IF v_document_type_code IS DISTINCT FROM 'sop'
+       OR v_required_permission IS NULL
        OR v_required_permission NOT IN ('documents.sop.validate', 'documents.sop.approve') THEN
         RETURN NEW;
     END IF;

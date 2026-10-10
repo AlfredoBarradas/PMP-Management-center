@@ -151,7 +151,7 @@
 
 .catalog-filters {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 15px;
     margin: 20px 0px;
 }
@@ -531,4 +531,51 @@
 }
 #sop-workflow .catalog-table table {
     min-width: 760px;
+}
+
+.section-search {
+    margin: 16px 0;
+}
+.catalog-filters select,
+.catalog-search input {
+    box-sizing: border-box;
+}
+.status-badge.status-released {
+    background: #dcfce7;
+    color: #166534;
+}
+.status-badge.status-validation,
+.status-badge.status-in_validation {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+.status-badge.status-approval,
+.status-badge.status-in_approval {
+    background: #fef3c7;
+    color: #92400e;
+}
+.status-badge.status-draft {
+    background: #f1f5f9;
+    color: #475569;
+}
+.status-badge.status-obsolete {
+    background: #e5e7eb;
+    color: #4b5563;
+}
+.status-badge.status-rejected {
+    background: #fee2e2;
+    color: #991b1b;
+}
+.catalog-table tr[hidden] {
+    display: none;
+}
+@media (max-width: 1000px) {
+    .catalog-filters {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+@media (max-width: 600px) {
+    .catalog-filters {
+        grid-template-columns: 1fr;
+    }
 }

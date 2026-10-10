@@ -113,9 +113,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         else workflowBody.innerHTML=rows.map(row=>'<tr class="catalog-clickable-row workflow-row" data-instance-id="'+escapeText(row.instance.id)+'" tabindex="0" role="button" aria-label="View workflow for '+escapeText(row.doc?.sop_code||"Unassigned")+'"><td>'+escapeText(row.area)+'</td><td>'+escapeText(row.process)+'</td><td>'+escapeText(row.model)+'</td><td>'+escapeText(row.partName)+'</td><td>'+escapeText(row.doc?.part_number||"—")+'</td><td>'+escapeText(row.doc?.operation_name||"—")+'</td><td>'+escapeText(row.creator)+'</td><td>'+escapeText(row.stage)+'</td><td>'+escapeText(row.assigneeRoles)+'</td><td><span class="status-badge status-'+escapeText(String(row.instance.status||"").toLowerCase())+'">'+escapeText(labelText(row.instance.status))+'</span></td></tr>').join("");
     } catch(error) {
         console.error("Unable to load SOP workflow data:",error);
-        message(validationBody,7,"Unable to load validation tasks. See browser console for details.");
-        message(approvalBody,7,"Unable to load approval tasks. See browser console for details.");
-        message(workflowBody,6,"Unable to load SOP workflow history. See browser console for details.");
+        message(validationBody,9,"Unable to load validation tasks. See browser console for details.");
+        message(approvalBody,9,"Unable to load approval tasks. See browser console for details.");
+        message(workflowBody,10,"Unable to load SOP workflow history. See browser console for details.");
     }
     document.addEventListener("click",async event=>{
         const button=event.target.closest(".workflow-detail-button");
@@ -166,6 +166,13 @@ document.addEventListener("DOMContentLoaded", async () => {
             const duration=dateDuration(instance.started_at,instance.completed_at);
             detail.innerHTML="<h3>"+escapeText(doc.sop_code||"Unassigned SOP")+" · "+escapeText(revision.revision_code||"Revision unknown")+"</h3><p><strong>Workflow ID:</strong> "+escapeText(instance.id)+" · <strong>Status:</strong> "+escapeText(labelText(instance.status))+"</p><p><strong>Creator:</strong> "+escapeText(profileMap.get(String(revision.created_by||doc.created_by))||"Creator profile unavailable")+"</p><p><strong>Part No.:</strong> "+escapeText(doc.part_number||"—")+" · <strong>Operation:</strong> "+escapeText(doc.operation_name||"—")+"</p><p><strong>Submitted:</strong> "+escapeText(dateText(instance.started_at))+" · <strong>Duration:</strong> "+escapeText(duration)+(instance.completed_at?"":" (in progress)")+"</p><h4>Tasks</h4><div class='catalog-table'><table><thead><tr><th>Task</th><th>Status</th><th>Assigned To</th><th>Created</th><th>Completed</th></tr></thead><tbody>"+(taskHtml||"<tr><td colspan='5'>No tasks found.</td></tr>")+"</tbody></table></div><h4>History</h4><div class='catalog-table workflow-history-table'><table><thead><tr><th>Date</th><th>User</th><th>Process</th><th>Comments</th></tr></thead><tbody>"+(historyHtml||"<tr><td colspan='4'>No history available.</td></tr>")+"</tbody></table></div>"+(canAct?"<div class='sop-revision-section'><label for='workflow-task-comment'>Review comments</label><textarea id='workflow-task-comment' rows='3' placeholder='Enter comments for this review'></textarea></div><div class='sop-modal-actions'><button type='button' class='danger-button' id='workflow-reject-task' data-task-id='"+escapeText(pendingTask.id)+"'>Reject and return to Draft</button><button type='button' class='primary-button' id='workflow-complete-task' data-task-id='"+escapeText(pendingTask.id)+"' data-stage='"+escapeText(permission)+"'>Complete "+escapeText(labelText(permission))+"</button></div>":pendingTask?"<p>You can view this workflow, but you do not have permission to act on its current task.</p>":"");
         }catch(error){console.error("Unable to load workflow details:",error);detail.innerHTML="<p>Unable to load workflow details. "+escapeText(error?.message||"Check access policies and the browser console.")+"</p>";}
+    });
+    document.addEventListener("keydown", event => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        const row = event.target.closest("tr.workflow-row[data-instance-id]");
+        if (!row || event.target.closest("button, a, input, select, textarea, label")) return;
+        event.preventDefault();
+        row.click();
     });
     function nodeMapLabel(nodeId){return "Task #"+nodeId;}
     document.addEventListener("click",async event=>{

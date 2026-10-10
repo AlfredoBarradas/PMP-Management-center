@@ -1014,7 +1014,41 @@ async function initializeSopPage() {
 
 
 
-    document.addEventListener("click", event => {
+    document.addEventListener("click", async event => {
+        const createRevisionButton = event.target.closest("#create-revision-button");
+        if (createRevisionButton) {
+            const sopId = Number(createRevisionButton.dataset.sopId);
+            const changeSummary = document.getElementById("revision-change-summary")?.value.trim() || "";
+            if (!changeSummary) {
+                alert("Enter a Change Summary before creating the revision.");
+                document.getElementById("revision-change-summary")?.focus();
+                return;
+            }
+            if (!confirm("Create the next Draft revision for this SOP?")) return;
+            createRevisionButton.disabled = true;
+            const originalText = createRevisionButton.textContent;
+            createRevisionButton.textContent = "Creating...";
+            try {
+                const { data, error } = await supabaseClient.rpc("create_sop_revision", {
+                    p_sop_id: sopId,
+                    p_change_summary: changeSummary
+                });
+                if (error) throw error;
+                const created = Array.isArray(data) ? data[0] : data;
+                if (!created?.revision_code) throw new Error("Revision creation returned an unexpected response.");
+                alert("Revision " + created.revision_code + " created as Draft. Open the draft to edit it and submit it for validation.");
+                await loadSopCatalog();
+                await loadMyDrafts();
+                await viewSop(sopId);
+            } catch (error) {
+                console.error("Error creating SOP revision:", error);
+                alert("Could not create the revision: " + (error.message || "Check your permissions and the create_sop_revision function."));
+            } finally {
+                createRevisionButton.disabled = false;
+                createRevisionButton.textContent = originalText;
+            }
+            return;
+        }
         const catalogRow = event.target.closest("#sop-catalog-body .catalog-clickable-row");
         if (catalogRow && !event.target.closest("button, a, input, select, textarea, label")) { viewSop(catalogRow.dataset.sopId); return; }
         const viewButton = event.target.closest(".view-sop-button");

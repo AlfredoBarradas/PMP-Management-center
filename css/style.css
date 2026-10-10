@@ -144,3 +144,17 @@ body.auth-pending::before {
     color: #263238;
     font-family: Arial, sans-serif;
 }
+
+/* Shared index/table interaction */
+table tbody tr {
+    transition: background-color 160ms ease, box-shadow 160ms ease;
+}
+table tbody tr:hover {
+    background-color: #e5f4f2;
+}
+table tbody tr:has(button, a, [role="button"], [data-action]) {
+    cursor: pointer;
+}
+table tbody tr:has(button, a, [role="button"], [data-action]):hover {
+    box-shadow: inset 3px 0 0 #168a80;
+}

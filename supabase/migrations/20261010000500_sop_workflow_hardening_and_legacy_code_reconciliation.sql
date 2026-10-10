@@ -88,10 +88,12 @@ BEGIN
             updated_at = pg_catalog.now()
         WHERE workshop_id = v_doc.workshop_id;
 
+        -- This table has a sequence but its id column has no DEFAULT, so allocate explicitly.
         INSERT INTO public.sop_workflow_history
-            (sop_id, revision_id, previous_status, new_status, action, comments, performed_by)
+            (id, sop_id, revision_id, previous_status, new_status, action, comments, performed_by)
         VALUES
-            (v_doc.sop_id, v_doc.released_revision_id, 'Released', 'Released',
+            (pg_catalog.nextval('public.sop_workflow_history_id_seq'::regclass),
+             v_doc.sop_id, v_doc.released_revision_id, 'Released', 'Released',
              'Code Reconciliation',
              'Assigned missing official code ' || v_new_code
                  || ' to an already released SOP during migration.',

@@ -1051,10 +1051,12 @@ function initializeResizableCatalogColumns() {
         const headers = [...table.querySelectorAll("thead th")];
         if (!headers.length || table.getBoundingClientRect().width < 1) return;
         const sectionId = table.closest(".sop-catalog") ? "sop-catalog" : (table.closest(".sop-section")?.id || "");
+        const responsiveCatalog = sectionId === "sop-catalog";
         const validationTable = ["sop-validation", "sop-approval"].includes(sectionId);
-        if (validationTable) {
+        if (responsiveCatalog || validationTable) {
             table.style.width = "100%";
             table.style.minWidth = "0";
+            table.style.maxWidth = "100%";
             table.style.tableLayout = "fixed";
             table.dataset.columnsResizable = "true";
             return;

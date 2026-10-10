@@ -1028,3 +1028,61 @@ async function initializeSopPage() {
     });
 
 }
+
+
+function initializeResizableCatalogColumns() {
+    document.querySelectorAll(".catalog-table table").forEach(table => {
+        if (table.dataset.columnsResizable === "true") return;
+        const headers = [...table.querySelectorAll("thead th")];
+        if (!headers.length) return;
+        const widths = headers.map(header => Math.max(60, Math.round(header.getBoundingClientRect().width)));
+        headers.forEach((header, index) => {
+            header.style.width = widths[index] + "px";
+            [...table.rows].forEach(row => {
+                if (row.cells[index]) row.cells[index].style.width = widths[index] + "px";
+            });
+            header.style.position = "sticky";
+            const handle = document.createElement("span");
+            handle.className = "column-resizer";
+            handle.setAttribute("aria-hidden", "true");
+            header.appendChild(handle);
+            handle.addEventListener("pointerdown", event => {
+                event.preventDefault();
+                event.stopPropagation();
+                const startX = event.clientX;
+                const startWidth = header.getBoundingClientRect().width;
+                const tableWidth = table.getBoundingClientRect().width;
+                const parentWidth = table.parentElement?.clientWidth || tableWidth;
+                handle.setPointerCapture?.(event.pointerId);
+                const move = moveEvent => {
+                    const width = Math.max(60, Math.min(420, Math.round(startWidth + moveEvent.clientX - startX)));
+                    header.style.width = width + "px";
+                    [...table.rows].forEach(row => {
+                        if (row.cells[index]) row.cells[index].style.width = width + "px";
+                    });
+                    const currentWidths = headers.map(cell => Math.max(60, Math.round(cell.getBoundingClientRect().width)));
+                    table.style.width = Math.max(parentWidth, currentWidths.reduce((sum, value) => sum + value, 0)) + "px";
+                };
+                const stop = () => {
+                    document.removeEventListener("pointermove", move);
+                    document.removeEventListener("pointerup", stop);
+                    document.removeEventListener("pointercancel", stop);
+                };
+                document.addEventListener("pointermove", move);
+                document.addEventListener("pointerup", stop, {once: true});
+                document.addEventListener("pointercancel", stop, {once: true});
+            });
+        });
+        table.style.width = Math.max(table.parentElement?.clientWidth || 0, widths.reduce((sum, value) => sum + value, 0)) + "px";
+        table.dataset.columnsResizable = "true";
+    });
+}
+document.addEventListener("DOMContentLoaded", initializeResizableCatalogColumns);
+document.addEventListener("keydown", event => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    const row = event.target.closest("tr.catalog-clickable-row, tr.workflow-row");
+    if (!row || event.target !== row) return;
+    event.preventDefault();
+    if (row.dataset.sopId) viewSop(row.dataset.sopId);
+    else if (row.dataset.instanceId) row.click();
+});

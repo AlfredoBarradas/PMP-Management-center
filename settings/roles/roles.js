@@ -193,6 +193,7 @@
                                             id="permission-${permission.id}"
                                             value="${permission.id}"
                                             data-permission-id="${permission.id}"
+                                            data-permission-code="${escapeHtml(permission.code)}"
                                         >
                                         <label for="permission-${permission.id}">
                                             ${escapeHtml(permission.name)}
@@ -215,6 +216,18 @@
         const form = document.getElementById("role-form");
         const clearButton = document.getElementById("clear-permissions-button");
         const tableBody = document.getElementById("roles-table-body");
+        const permissionsContainer = document.getElementById("permissions-container");
+
+        permissionsContainer?.addEventListener("change", event => {
+            const checkbox = event.target.closest("input[data-permission-code]");
+            if (!checkbox) return;
+            if (checkbox.dataset.permissionCode === "documents.sop.create") {
+                syncSopWorkflowPermission();
+            } else if (checkbox.dataset.permissionCode === "workflow.instances.start") {
+                const createCheckbox = permissionsContainer.querySelector('input[data-permission-code="documents.sop.create"]');
+                if (createCheckbox?.checked) checkbox.checked = true;
+            }
+        });
 
         createButton?.addEventListener("click", () => {
             openCreateRoleModal();
@@ -303,6 +316,7 @@
                     checkbox.checked = true;
                 }
             });
+            syncSopWorkflowPermission();
         } catch (error) {
             showFormMessage(
                 "Unable to load role permissions.",
@@ -324,7 +338,26 @@
             .querySelectorAll("#permissions-container input[type='checkbox']")
             .forEach(checkbox => {
                 checkbox.checked = false;
+                checkbox.disabled = false;
+                delete checkbox.dataset.autoAddedBySopCreate;
             });
+    }
+
+    function syncSopWorkflowPermission() {
+        const createCheckbox = document.querySelector('#permissions-container input[data-permission-code="documents.sop.create"]');
+        const startCheckbox = document.querySelector('#permissions-container input[data-permission-code="workflow.instances.start"]');
+        if (!createCheckbox || !startCheckbox) return;
+        if (createCheckbox.checked) {
+            if (!startCheckbox.checked) startCheckbox.dataset.autoAddedBySopCreate = "true";
+            startCheckbox.checked = true;
+            startCheckbox.disabled = true;
+            startCheckbox.title = "Automatically included because this role can create SOPs.";
+        } else {
+            if (startCheckbox.dataset.autoAddedBySopCreate === "true") startCheckbox.checked = false;
+            delete startCheckbox.dataset.autoAddedBySopCreate;
+            startCheckbox.disabled = false;
+            startCheckbox.title = "";
+        }
     }
 
     async function handleRoleSubmit(event) {

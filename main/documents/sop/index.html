@@ -85,7 +85,7 @@
                         <div class="catalog-table">
                             <table>
                                 <thead>
-                                    <tr><th>Date</th><th>Status</th><th>Code</th><th>Area</th><th>Process</th><th>Model</th><th>Part Name</th><th>Part Number</th><th>Operation Name</th><th>Revision</th><th>Created By</th></tr>
+                                    <tr><th>Date</th><th>Status</th><th>Code</th><th>Area</th><th>Process</th><th>Model</th><th>Part Name</th><th>Part Number</th><th>Operation Name</th></tr>
                                 </thead>
                                 <tbody id="sop-catalog-body">
                                 </tbody>
@@ -206,19 +206,12 @@
                         <button type="button" class="secondary-button" data-section="sop-control">Back</button>
                     </div>
 
+                    <div class="catalog-search section-search"><label for="sop-drafts-search">Search my drafts</label><input type="search" id="sop-drafts-search" data-table-search="sop-drafts-body" placeholder="Search code, model, part number, operation..."></div>
+
                     <div class="catalog-table">
                         <table>
                             <thead>
-                                <tr>
-                                    <th>Code</th>
-                                    <th>Model</th>
-                                    <th>Part Name</th>
-                                    <th>Part No.</th>
-                                    <th>Operation Name</th>
-                                    <th>Revision</th>
-                                    <th>Last Modified</th>
-                                    <th>Actions</th>
-                                </tr>
+                                <tr><th>Code</th><th>Area</th><th>Process</th><th>Model</th><th>Part Name</th><th>Part Number</th><th>Operation Name</th></tr>
                             </thead>
 
                             <tbody id="sop-drafts-body"><tr><td colspan="8">Loading drafts...</td></tr></tbody>
@@ -235,18 +228,12 @@
                         <button type="button" class="secondary-button" data-section="sop-control">Back</button>
                     </div>
 
+                    <div class="catalog-search section-search"><label for="sop-validation-search">Search pending validation</label><input type="search" id="sop-validation-search" data-table-search="sop-validation-body" placeholder="Search code, model, part number, creator..."></div>
+
                     <div class="catalog-table">
                         <table>
                             <thead>
-                                <tr>
-                                    <th>Code</th>
-                                    <th>Model</th>
-                                    <th>Part No.</th>
-                                    <th>Created By</th>
-                                    <th>Pending With</th>
-                                    <th>Date</th>
-                                    <th>Actions</th>
-                                </tr>
+                                <tr><th>Area</th><th>Process</th><th>Model</th><th>Part Name</th><th>Part Number</th><th>Operation Name</th><th>Created By</th><th>Pending With</th><th>Date</th></tr>
                             </thead>
 
                             <tbody id="sop-validation-body"><tr><td colspan="7">Loading workflow tasks...</td></tr></tbody>
@@ -262,6 +249,8 @@
                         </div>
                         <button type="button" class="secondary-button" data-section="sop-control">Back</button>
                     </div>
+
+                    <div class="catalog-search section-search"><label for="sop-approval-search">Search pending approval</label><input type="search" id="sop-approval-search" data-table-search="sop-approval-body" placeholder="Search code, model, part number, creator..."></div>
 
                     <div class="catalog-table">
                         <table>
@@ -291,17 +280,12 @@
                         <button type="button" class="secondary-button" data-section="sop-control">Back</button>
                     </div>
 
+                    <div class="catalog-search section-search"><label for="sop-workflow-search">Search workflow</label><input type="search" id="sop-workflow-search" data-table-search="sop-workflow-body" placeholder="Search code, stage, assignee, status..."></div>
+
                     <div class="catalog-table">
                         <table>
                             <thead>
-                                <tr>
-                                    <th>Code</th>
-                                    <th>Current Stage</th>
-                                    <th>Pending With</th>
-                                    <th>Since</th>
-                                    <th>Status</th>
-                                    <th>Action</th>
-                                </tr>
+                                <tr><th>Area</th><th>Process</th><th>Model</th><th>Part Name</th><th>Part Number</th><th>Operation Name</th><th>Created By</th><th>Current Stage</th><th>Pending With</th><th>Status</th></tr>
                             </thead>
 
                             <tbody id="sop-workflow-body"><tr><td colspan="6">Loading workflow...</td></tr></tbody>

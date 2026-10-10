@@ -827,3 +827,260 @@
         max-height: 60vh;
     }
 }
+
+
+/* SOP revision and status badges */
+.status-badge,.revision-badge{display:inline-flex;align-items:center;justify-content:center;max-width:100%;padding:4px 9px;border-radius:999px;font-size:12px;font-weight:700;line-height:1.35;white-space:nowrap;border:1px solid transparent}.revision-badge{min-width:42px;letter-spacing:.02em}.revision-badge.revision-unassigned{background:#f1f5f9;color:#64748b;border-color:#e2e8f0}.status-badge.status-released,.revision-badge.status-released{background:#dcfce7;color:#166534;border-color:#bbf7d0}.status-badge.status-validation,.status-badge.status-in_validation,.revision-badge.status-validation,.revision-badge.status-in_validation{background:#dbeafe;color:#1d4ed8;border-color:#bfdbfe}.status-badge.status-approval,.status-badge.status-in_approval,.revision-badge.status-approval,.revision-badge.status-in_approval{background:#fef3c7;color:#92400e;border-color:#fde68a}.status-badge.status-draft,.revision-badge.status-draft{background:#f1f5f9;color:#475569;border-color:#e2e8f0}.status-badge.status-obsolete,.revision-badge.status-obsolete{background:#e5e7eb;color:#4b5563;border-color:#d1d5db}.status-badge.status-rejected,.revision-badge.status-rejected{background:#fee2e2;color:#991b1b;border-color:#fecaca}
+#sop-catalog .catalog-table th:nth-child(1){width:8%}#sop-catalog .catalog-table th:nth-child(2){width:10%}#sop-catalog .catalog-table th:nth-child(3){width:8%}#sop-catalog .catalog-table th:nth-child(4){width:9%}#sop-catalog .catalog-table th:nth-child(5){width:8%}#sop-catalog .catalog-table th:nth-child(6){width:9%}#sop-catalog .catalog-table th:nth-child(7){width:9%}#sop-catalog .catalog-table th:nth-child(8){width:12%}#sop-catalog .catalog-table th:nth-child(9){width:7%}#sop-catalog .catalog-table th:nth-child(10){width:9%}#sop-catalog .catalog-table th:nth-child(11){width:7%}#sop-catalog .catalog-table th:nth-child(12){width:7%}
+.catalog-search.section-search{margin:16px 0}
+
+/* SOP Index: status immediately after Date */
+#sop-catalog .catalog-table th:nth-child(1) { width: 8%; }
+#sop-catalog .catalog-table th:nth-child(2) { width: 9%; }
+#sop-catalog .catalog-table th:nth-child(3) { width: 9%; }
+#sop-catalog .catalog-table th:nth-child(4) { width: 8%; }
+#sop-catalog .catalog-table th:nth-child(5) { width: 8%; }
+#sop-catalog .catalog-table th:nth-child(6) { width: 7%; }
+#sop-catalog .catalog-table th:nth-child(7) { width: 8%; }
+#sop-catalog .catalog-table th:nth-child(8) { width: 8%; }
+#sop-catalog .catalog-table th:nth-child(9) { width: 11%; }
+#sop-catalog .catalog-table th:nth-child(10) { width: 7%; }
+#sop-catalog .catalog-table th:nth-child(11) { width: 9%; }
+#sop-catalog .catalog-table th:nth-child(12) { width: 8%; }
+#sop-workflow-body .workflow-clickable-row { cursor: pointer; }
+#sop-workflow-body .workflow-clickable-row:hover { background: #e5f4f2; box-shadow: inset 3px 0 0 #168a80; }
+
+
+/* PMP Management Center visual system: teal, petroleum and compact surfaces */
+:root {
+    --pmp-primary: #00AAA6;
+    --pmp-hover: #A3DEDA;
+    --pmp-success: #A6DFCC;
+    --pmp-info: #0070C0;
+    --pmp-structure: #4D839B;
+    --pmp-attention: #C3D69B;
+    --pmp-sidebar: #123746;
+    --pmp-page: #F3F7F7;
+    --pmp-surface: #FFFFFF;
+    --pmp-text: #17313D;
+    --pmp-muted: #607D8B;
+    --pmp-border: #D8E5E7;
+    --pmp-danger: #D92D3A;
+    --pmp-danger-hover: #B42332;
+    --pmp-danger-soft: #FDEBEC;
+    --pmp-danger-border: #F2A7AE;
+}
+body[data-page="SOP"] .content {
+    min-width: 0;
+    width: 100%;
+    max-width: none;
+    margin-inline: 0;
+    padding: clamp(16px, 2vw, 28px);
+    background: var(--pmp-page);
+    color: var(--pmp-text);
+}
+body[data-page="SOP"] .sop-section,
+body[data-page="SOP"] .sop-catalog,
+body[data-page="SOP"] .catalog-table {
+    min-width: 0;
+    max-width: 100%;
+}
+body[data-page="SOP"] .sop-section > .section-header { margin: 0 0 18px; }
+body[data-page="SOP"] .sop-control-grid,
+body[data-page="SOP"] .workflow-summary,
+body[data-page="SOP"] .sop-catalog,
+body[data-page="SOP"] .catalog-table,
+body[data-page="SOP"] .form-section {
+    background: var(--pmp-surface);
+    border: 1px solid var(--pmp-border);
+    border-radius: 14px;
+    box-shadow: 0 5px 18px rgba(23, 49, 61, .035);
+}
+body[data-page="SOP"] .sop-control-grid { margin: 18px 0; }
+body[data-page="SOP"] .sop-control-tile { min-width: 0; background: #fff; border-color: var(--pmp-border); }
+body[data-page="SOP"] .sop-control-tile:hover { background: #E8F8F7; }
+body[data-page="SOP"] .sop-control-tile strong { background: #E4F7F5; color: #007F7C; }
+body[data-page="SOP"] .workflow-summary { margin: 18px 0 24px; padding: 20px; }
+body[data-page="SOP"] .sop-catalog { padding: clamp(14px, 1.8vw, 24px); margin: 0; }
+body[data-page="SOP"] .sop-catalog .section-header { margin: 0 0 18px; }
+body[data-page="SOP"] .sop-section h2 { color: var(--pmp-text); }
+body[data-page="SOP"] .sop-catalog .section-header p,
+body[data-page="SOP"] .workflow-summary p { color: var(--pmp-muted); }
+body[data-page="SOP"] .catalog-search { margin: 14px 0; }
+body[data-page="SOP"] .catalog-search input,
+body[data-page="SOP"] .filter-group select,
+body[data-page="SOP"] .form-group input,
+body[data-page="SOP"] .form-group select,
+body[data-page="SOP"] .form-group textarea {
+    box-sizing: border-box;
+    min-width: 0;
+    border: 1px solid var(--pmp-border);
+    border-radius: 9px;
+    background: #fff;
+    color: var(--pmp-text);
+}
+body[data-page="SOP"] .catalog-search input:focus,
+body[data-page="SOP"] .filter-group select:focus,
+body[data-page="SOP"] .form-group input:focus,
+body[data-page="SOP"] .form-group select:focus,
+body[data-page="SOP"] .form-group textarea:focus {
+    outline: 2px solid var(--pmp-hover);
+    outline-offset: 1px;
+    border-color: var(--pmp-primary);
+}
+body[data-page="SOP"] .catalog-filters { grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr)); gap: 12px; }
+body[data-page="SOP"] .catalog-table {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow-x: hidden !important;
+    overflow-y: visible;
+    margin-top: 12px;
+}
+body[data-page="SOP"] .catalog-table table {
+    width: 100%;
+    min-width: 0 !important;
+    table-layout: fixed;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+body[data-page="SOP"] .catalog-table th {
+    background: #EAF2F4;
+    color: var(--pmp-text);
+    border-bottom: 1px solid var(--pmp-border);
+    font-size: 12px;
+    letter-spacing: .015em;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    padding: 12px 10px;
+}
+body[data-page="SOP"] .catalog-table td {
+    padding: 12px 10px;
+    border-bottom: 1px solid #E8EFF0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: normal;
+    font-size: 13px;
+    vertical-align: middle;
+}
+body[data-page="SOP"] .catalog-table tbody tr:last-child td { border-bottom: 0; }
+body[data-page="SOP"] .catalog-table tbody tr:hover { background: #E7F7F6; }
+body[data-page="SOP"] .catalog-table tbody tr.catalog-clickable-row:hover,
+body[data-page="SOP"] #sop-catalog-body tr:hover {
+    background: #E7F7F6;
+    box-shadow: inset 3px 0 0 var(--pmp-primary);
+}
+body[data-page="SOP"] .catalog-table tbody tr.catalog-clickable-row:focus-visible {
+    outline: 2px solid var(--pmp-primary);
+    outline-offset: -2px;
+}
+body[data-page="SOP"] .primary-button {
+    background: var(--pmp-primary);
+    border: 1px solid var(--pmp-primary);
+    color: #fff;
+    border-radius: 9px;
+}
+body[data-page="SOP"] .primary-button:hover { background: #008F8B; }
+body[data-page="SOP"] .secondary-button {
+    border: 1px solid var(--pmp-border);
+    background: #fff;
+    color: var(--pmp-text);
+    border-radius: 9px;
+}
+body[data-page="SOP"] .secondary-button:hover { background: #E7F7F6; border-color: var(--pmp-hover); }
+body[data-page="SOP"] .remark-button { border-color: var(--pmp-primary); color: #007F7C; border-radius: 9px; }
+body[data-page="SOP"] .remark-button:hover { background: #E7F7F6; }
+body[data-page="SOP"] .danger-button { border-color: var(--pmp-danger); color: var(--pmp-danger); border-radius: 9px; }
+body[data-page="SOP"] .danger-button:hover { background: var(--pmp-danger-soft); }
+body[data-page="SOP"] .sop-modal-content { border: 1px solid var(--pmp-border); border-radius: 16px; }
+body[data-page="SOP"] .sop-modal-header,
+body[data-page="SOP"] .sop-modal-footer { border-color: var(--pmp-border); }
+body[data-page="SOP"] .sop-modal-body { min-height: 0; }
+body[data-page="SOP"] .sop-workflow-detail { margin-top: 18px; padding: 0; }
+body[data-page="SOP"] .workflow-history-list { gap: 8px; }
+body[data-page="SOP"] .workflow-history-list li { padding: 8px 0; }
+body[data-page="SOP"] .workflow-history-list p { border-left-color: var(--pmp-hover); background: #F3F8F8; }
+body[data-page="SOP"] .status-badge.status-released,
+body[data-page="SOP"] .status-badge.status-completed { background: #DDF3E9; color: #176B46; border: 1px solid #A6DFCC; }
+body[data-page="SOP"] .status-badge.status-validation,
+body[data-page="SOP"] .status-badge.status-in_validation,
+body[data-page="SOP"] .status-badge.status-in_progress { background: #E1F4F3; color: #006F6C; border: 1px solid #A3DEDA; }
+body[data-page="SOP"] .status-badge.status-approval,
+body[data-page="SOP"] .status-badge.status-in_approval { background: #F0F5DE; color: #566A20; border: 1px solid #C3D69B; }
+body[data-page="SOP"] .status-badge.status-rejected { background: var(--pmp-danger-soft); color: #8F1D27; border: 1px solid var(--pmp-danger-border); }
+body[data-page="SOP"] .sop-validation-alert { background: var(--pmp-danger-soft); border: 1px solid var(--pmp-danger-border); color: #8F1D27; }
+body[data-page="SOP"] .sop-field-invalid input,
+body[data-page="SOP"] .sop-field-invalid select,
+body[data-page="SOP"] .sop-field-invalid textarea { border: 1px solid var(--pmp-danger) !important; background: #FFF7F7; }
+@media (max-width: 900px) {
+    body[data-page="SOP"] .content { padding: 14px; }
+    body[data-page="SOP"] .catalog-table th,
+    body[data-page="SOP"] .catalog-table td { padding: 9px 7px; font-size: 12px; }
+    body[data-page="SOP"] .sop-modal-content { width: calc(100vw - 24px); max-height: 90vh; }
+}
+@media (max-width: 600px) {
+    body[data-page="SOP"] .content { padding: 10px; }
+    body[data-page="SOP"] .sop-control-grid { grid-template-columns: 1fr; }
+    body[data-page="SOP"] .workflow-summary { padding: 14px; }
+    body[data-page="SOP"] .sop-catalog { padding: 10px; }
+    body[data-page="SOP"] .catalog-table th,
+    body[data-page="SOP"] .catalog-table td { padding: 8px 5px; font-size: 11px; }
+    body[data-page="SOP"] .sop-modal-grid { grid-template-columns: 1fr; }
+}
+
+
+/* Catalogs: remove nested white cards and align the content with the page */
+body[data-page="SOP"] .sop-catalog,
+body[data-page="SOP"] #sop-drafts,
+body[data-page="SOP"] #sop-validation,
+body[data-page="SOP"] #sop-approval,
+body[data-page="SOP"] #sop-workflow {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 0;
+    margin-inline: 0;
+    width: 100%;
+    max-width: 100%;
+}
+body[data-page="SOP"] .catalog-table {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    margin: 12px 0 0;
+    padding: 0;
+}
+body[data-page="SOP"] .catalog-table table {
+    background: transparent;
+}
+body[data-page="SOP"] .catalog-table thead {
+    background: #E6EFF1;
+}
+body[data-page="SOP"] .catalog-table th {
+    background: #E6EFF1;
+    border-bottom: 1px solid #C9DADD;
+}
+body[data-page="SOP"] .catalog-table td {
+    background: transparent;
+}
+body[data-page="SOP"] .catalog-table tbody tr {
+    background: transparent;
+}
+body[data-page="SOP"] .catalog-table tbody tr:hover {
+    background: #E1F4F3;
+}
+body[data-page="SOP"] .sop-catalog .section-header,
+body[data-page="SOP"] #sop-drafts > .section-header,
+body[data-page="SOP"] #sop-validation > .section-header,
+body[data-page="SOP"] #sop-approval > .section-header,
+body[data-page="SOP"] #sop-workflow > .section-header {
+    text-align: left;
+    justify-content: flex-start;
+}
+body[data-page="SOP"] .catalog-table td,
+body[data-page="SOP"] .catalog-table th {
+    border-left: 0;
+    border-right: 0;
+}

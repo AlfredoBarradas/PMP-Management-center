@@ -216,18 +216,10 @@ async function initializeSopPage() {
         });
     });
     document.getElementById("save-sop-draft").addEventListener("click", async () => {
-        if (sopMode.value === "revision") {
-            alert("Saving revisions is not connected yet.");
-            return;
-        }
         await saveNewSop({ submitForValidation: false });
     });
     sopForm.addEventListener("submit", async event => {
         event.preventDefault();
-        if (sopMode.value === "revision") {
-            alert("Submitting revisions is not connected yet.");
-            return;
-        }
         await saveNewSop({ submitForValidation: true });
     });
     document.querySelectorAll(".danger-button").forEach(button => {
@@ -484,6 +476,50 @@ async function initializeSopPage() {
         saveButton.textContent = "Saving...";
         submitButton.textContent = submitForValidation ? "Submitting..." : originalSubmitText;
         try {
+            if (sopMode.value === "revision") {
+                const { data: revisionData, error: revisionCreateError } = await supabaseClient.rpc("create_sop_revision", {
+                    p_sop_id: Number(sopId.value),
+                    p_change_summary: description,
+                    p_created_by: (await supabaseClient.auth.getUser()).data?.user?.id
+                });
+                if (revisionCreateError) throw revisionCreateError;
+                const createdRevision = Array.isArray(revisionData) ? revisionData[0] : revisionData;
+                if (!createdRevision?.revision_code) {
+                    console.error("Unexpected create_sop_revision response:", revisionData);
+                    throw new Error("Revision creation returned an unexpected response.");
+                }
+                const { data: revisionRecord, error: revisionLookupError } = await supabaseClient
+                    .from("sop_revisions")
+                    .select("id")
+                    .eq("sop_id", Number(sopId.value))
+                    .eq("revision_code", createdRevision.revision_code)
+                    .single();
+                if (revisionLookupError) throw revisionLookupError;
+                if (submitForValidation) {
+                    const { error: workflowError } = await supabaseClient.rpc("workflow_start_instance", {
+                        p_definition_id: 1,
+                        p_source_document_id: Number(sopId.value),
+                        p_source_revision_id: Number(revisionRecord.id),
+                        p_metadata: { source: "sop_revision_form", submitted_from: "Submit for Validation" }
+                    });
+                    if (workflowError) {
+                        alert("Revision " + createdRevision.revision_code + " was saved as Draft, but submission failed: " + workflowError.message);
+                        await loadMyDrafts();
+                        await loadSopCatalog();
+                        return;
+                    }
+                    alert("Revision " + createdRevision.revision_code + " was created and submitted for validation.");
+                } else {
+                    alert("Revision " + createdRevision.revision_code + " was saved as Draft.");
+                }
+                sopForm.reset();
+                editingRevisionId = null;
+                setCreateMode();
+                showSection("sop-control");
+                await loadMyDrafts();
+                await loadSopCatalog();
+                return;
+            }
             if (sopMode.value === "edit") {
                 if (!editingRevisionId) throw new Error("Draft revision is missing. Reopen the draft and try again.");
                 const { data: updateResult, error: updateError } = await supabaseClient.rpc("update_sop_draft", {

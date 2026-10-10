@@ -52,11 +52,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         const docMap=new Map(docs.map(row=>[String(row.id),row])), revisionMap=new Map(revisions.map(row=>[String(row.id),row]));
         const modelMap=new Map((modelsResult.data||[]).map(row=>[String(row.id),row.name]));
         const partNameMap=new Map((partNamesResult.data||[]).map(row=>[String(row.id),row.name]));
-        const assigneeIds=[...new Set(assignments.map(row=>row.user_id).filter(Boolean))];
-        const creatorIds=[...new Set([...docs.map(row=>row.created_by),...revisions.map(row=>row.created_by)].filter(Boolean))];
-        const profileIds=[...new Set([...assigneeIds,...creatorIds])];
-        const profileResult=profileIds.length ? await supabaseClient.from("user_profiles").select("id,full_name").in("id",profileIds) : {data:[],error:null};
-        const profileMap=new Map((profileResult.data||[]).map(row=>[String(row.id),row.full_name]));
+        const peopleResult=ids.length ? await supabaseClient.rpc("get_sop_workflow_people",{p_instance_ids:ids}) : {data:[],error:null};
+        if(peopleResult.error) throw peopleResult.error;
+        const profileMap=new Map((peopleResult.data||[]).map(row=>[String(row.user_id),row.full_name]));
         const taskFor=instance=>tasks.filter(task=>String(task.instance_id)===String(instance.id));
         const currentTask=instance=>taskFor(instance).find(task=>pendingStatuses.includes(String(task.status||"").toLowerCase()));
         const nodeFor=instance=>{const task=currentTask(instance);return nodeMap.get(String(task?.node_id ?? instance.current_node_id));};
@@ -116,9 +114,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             if(docResult.error)throw docResult.error;
             const revResult=instance.source_revision_id?await supabaseClient.from("sop_revisions").select("id,revision_code,status,created_by,description,released_at").eq("id",instance.source_revision_id).maybeSingle():{data:null,error:null};
             if(revResult.error)throw revResult.error;
-            const users=[...new Set([docResult.data?.created_by,revResult.data?.created_by,...(assignmentResult.data||[]).map(row=>row.user_id),...(history||[]).map(row=>row.actor_id)].filter(Boolean))];
-            const profileResult=users.length?await supabaseClient.from("user_profiles").select("id,full_name").in("id",users):{data:[],error:null};
-            const profileMap=new Map((profileResult.data||[]).map(row=>[String(row.id),row.full_name]));
+            const peopleResult=await supabaseClient.rpc("get_sop_workflow_people",{p_instance_ids:[Number(instanceId)]});
+            if(peopleResult.error)throw peopleResult.error;
+            const profileMap=new Map((peopleResult.data||[]).map(row=>[String(row.user_id),row.full_name]));
             const pendingTask=taskRows.find(row=>pendingStatuses.includes(String(row.status||"").toLowerCase()));
             const nodeResult=pendingTask?await supabaseClient.from("workflow_nodes").select("label,node_type,required_permission_code").eq("id",pendingTask.node_id).maybeSingle():{data:null,error:null};
             if(nodeResult.error)throw nodeResult.error;
